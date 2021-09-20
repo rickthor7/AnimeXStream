@@ -1,6 +1,7 @@
 package net.xblacky.animexstream.ui.main.player
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.net.Uri
@@ -42,6 +43,7 @@ import net.xblacky.animexstream.utils.constants.C.Companion.ERROR_CODE_DEFAULT
 import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTION
 import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
 import net.xblacky.animexstream.utils.model.Content
+import net.xblacky.animexstream.utils.preference.Preference
 import timber.log.Timber
 import java.io.IOException
 import java.net.URLDecoder
@@ -73,6 +75,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     private var isFullScreen = false
     private var isVideoPlaying: Boolean = false
 
+    private lateinit var sharedPreferences: Preference
+
     private val speeds = arrayOf(0.25f, 0.5f, 1f, 1.25f, 1.5f, 2f)
     private val showableSpeed = arrayOf("0.25x", "0.50x", "1x", "1.25x", "1.50x", "2x")
     private var checkedItem = 2
@@ -82,12 +86,13 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         super.onCreateView(inflater, container, savedInstanceState)
         rootView = inflater.inflate(R.layout.fragment_video_player, container, false)
         setClickListeners()
         initializeAudioManager()
         initializePlayer()
+        sharedPreferences = Preference(requireContext())
         retainInstance = true
         return rootView
     }
@@ -139,19 +144,20 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
 
 
         val lastPath = uri.lastPathSegment
-        val defaultDataSourceFactory = DefaultHttpDataSourceFactory("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36")
+        val defaultDataSourceFactory =
+            DefaultHttpDataSourceFactory("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36")
 
-        if(lastPath!!.contains("m3u8")){
+        if (lastPath!!.contains("m3u8")) {
             return HlsMediaSource.Factory(
                 HlsDataSourceFactory {
                     val dataSource: HttpDataSource =
-                        DefaultHttpDataSource("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36")
-                    dataSource.setRequestProperty("Referer", "https://vidstreaming.io/")
+                        DefaultHttpDataSource("Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Mobile Safari/537.36")
+                    dataSource.setRequestProperty("Referer", sharedPreferences.getReferrer())
                     dataSource
                 })
                 .setAllowChunklessPreparation(true)
                 .createMediaSource(uri)
-        }else{
+        } else {
 //            val dashChunkSourceFactory = DefaultDashChunkSource.Factory(defaultDataSourceFactory)
             return ExtractorMediaSource.Factory(defaultDataSourceFactory)
                 .createMediaSource(uri)
@@ -163,7 +169,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         Timber.e("Content Updated uRL: ${content.url}")
         this.content = content
         episodeName.text = content.episodeName
-        exoPlayerView.videoSurfaceView.visibility =View.GONE
+        exoPlayerView.videoSurfaceView.visibility = View.GONE
 
         this.content.nextEpisodeUrl?.let {
             nextEpisode.visibility = View.VISIBLE
@@ -175,10 +181,14 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         } ?: kotlin.run {
             previousEpisode.visibility = View.GONE
         }
-        if(!content.url.isNullOrEmpty()){
+        if (!content.url.isNullOrEmpty()) {
             updateVideoUrl(URLDecoder.decode(content.url, StandardCharsets.UTF_8.name()))
-        }else{
-            showErrorLayout(show = true, errorCode = RESPONSE_UNKNOWN, errorMsgId = R.string.server_error)
+        } else {
+            showErrorLayout(
+                show = true,
+                errorCode = RESPONSE_UNKNOWN,
+                errorMsgId = R.string.server_error
+            )
         }
 
     }
@@ -368,7 +378,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         val builder = AlertDialog.Builder(context!!)
         builder.apply {
             setTitle("Set your playback speed")
-            setSingleChoiceItems(showableSpeed, checkedItem) {_, which ->
+            setSingleChoiceItems(showableSpeed, checkedItem) { _, which ->
                 when (which) {
                     0 -> setSpeed(0)
                     1 -> setSpeed(1)
@@ -378,11 +388,11 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
                     5 -> setSpeed(5)
                 }
             }
-            setPositiveButton("OK") {dialog, _ ->
+            setPositiveButton("OK") { dialog, _ ->
                 setPlaybackSpeed(speeds[selectedSpeed])
                 dialog.dismiss()
             }
-            setNegativeButton("Cancel") {dialog, _ ->
+            setNegativeButton("Cancel") { dialog, _ ->
                 dialog.dismiss()
             }
         }
@@ -415,7 +425,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
                 // querying the cause.
                 if (httpError is InvalidResponseCodeException) {
                     val responseCode = httpError.responseCode
-                        content.url = ""
+                    content.url = ""
                     showErrorLayout(
                         show = true,
                         errorMsgId = R.string.server_error,
@@ -437,13 +447,13 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
 
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
         isVideoPlaying = playWhenReady
-        if (playbackState == Player.STATE_READY  && playWhenReady) {
+        if (playbackState == Player.STATE_READY && playWhenReady) {
             rootView.exo_play.setImageResource(R.drawable.ic_media_play)
             rootView.exo_pause.setImageResource(R.drawable.ic_media_pause)
             playOrPausePlayer(true)
 
         }
-        if (playbackState == Player.STATE_BUFFERING  && playWhenReady) {
+        if (playbackState == Player.STATE_BUFFERING && playWhenReady) {
             rootView.exo_play.setImageResource(0)
             rootView.exo_pause.setImageResource(0)
             showLoading(false)
@@ -577,7 +587,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         mediaSessionConnector.setPlayer(null)
     }
 
-     fun saveWatchedDuration() {
+    fun saveWatchedDuration() {
         if (::content.isInitialized) {
             val watchedDuration = player.currentPosition
             content.duration = player.duration
@@ -588,7 +598,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         }
     }
 
-    fun isVideoPlaying(): Boolean{
+    fun isVideoPlaying(): Boolean {
         return isVideoPlaying
     }
 

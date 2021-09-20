@@ -20,8 +20,8 @@ android {
 //            keyPassword 'labrador1'
 //        }
 //    }
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    compileSdkVersion 30
+    buildToolsVersion "29.0.3"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -32,9 +32,9 @@ android {
     defaultConfig {
         applicationId "net.xblacky.animexstream"
         minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 8
-        versionName "0.2.4"
+        targetSdkVersion 30
+        versionCode 9
+        versionName "0.2.5"
         vectorDrawables.useSupportLibrary = true
         archivesBaseName = "AnimexStream-v$versionName"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

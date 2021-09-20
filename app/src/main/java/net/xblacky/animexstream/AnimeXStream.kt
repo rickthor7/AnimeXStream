@@ -16,6 +16,8 @@ class AnimeXStream : Application() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+
     }
+
 
 }

@@ -10,7 +10,6 @@ import net.xblacky.animexstream.utils.realm.InitalizeRealm
 import net.xblacky.animexstream.utils.rertofit.NetworkInterface
 import net.xblacky.animexstream.utils.rertofit.RetrofitHelper
 import okhttp3.ResponseBody
-import okhttp3.internal.Util
 
 class AnimeInfoRepository {
 

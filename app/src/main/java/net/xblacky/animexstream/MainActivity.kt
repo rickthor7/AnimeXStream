@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
                     val baseUrl = firebaseConfig.getString("BASE_URL")
                     val origin = firebaseConfig.getString("ORIGIN")
                     val ref = firebaseConfig.getString("REFERER")
+                    Timber.e(baseUrl)
                     if (baseUrl.isNotEmpty()) {
                         PreferenceHelper.sharedPreference.setBaseUrl(baseUrl)
                     }
