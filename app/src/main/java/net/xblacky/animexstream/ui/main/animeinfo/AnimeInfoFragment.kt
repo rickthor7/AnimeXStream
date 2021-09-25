@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_animeinfo.*
 import kotlinx.android.synthetic.main.fragment_animeinfo.view.*
 import kotlinx.android.synthetic.main.fragment_animeinfo.view.animeInfoRoot

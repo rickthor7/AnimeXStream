@@ -56,7 +56,6 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) : TypedEpoxyCo
                     homeScreenModel.animeList?.forEach {
                         val animeMetaModel = it
 
-
                         AnimePopularModel_()
                             .id(animeMetaModel.ID)
                             .clickListener { model, _, _, _ ->

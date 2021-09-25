@@ -14,38 +14,38 @@ class NetworkInterface {
     interface FetchRecentSubOrDub {
 
         @GET("https://ajax.gogocdn.net/ajax/page-recent-release.html")
-        fun get(
+        suspend fun get(
             @HeaderMap header: Map<String, String>,
             @Query("page") page: Int,
             @Query("type") type: Int
-        ): Observable<ResponseBody>
+        ): ResponseBody
     }
 
     interface FetchPopularFromAjax {
 
         @GET("https://ajax.gogocdn.net/ajax/page-recent-release-ongoing.html")
-        fun get(
+        suspend fun get(
             @HeaderMap header: Map<String, String>,
             @Query("page") page: Int
-        ): Observable<ResponseBody>
+        ): ResponseBody
     }
 
     interface FetchMovies {
 
         @GET("/anime-movies.html")
-        fun get(
+        suspend fun get(
             @HeaderMap header: Map<String, String>,
             @Query("page") page: Int
-        ): Observable<ResponseBody>
+        ): ResponseBody
     }
 
     interface FetchNewestSeason {
 
         @GET("/new-season.html")
-        fun get(
+        suspend fun get(
             @HeaderMap header: Map<String, String>,
             @Query("page") page: Int
-        ): Observable<ResponseBody>
+        ): ResponseBody
     }
 
     interface FetchEpisodeMediaUrl {

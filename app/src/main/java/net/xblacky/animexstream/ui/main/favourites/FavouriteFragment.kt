@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_favourite.view.*
 import kotlinx.android.synthetic.main.fragment_favourite.view.toolbarText
 import kotlinx.android.synthetic.main.fragment_favourite.view.topView
