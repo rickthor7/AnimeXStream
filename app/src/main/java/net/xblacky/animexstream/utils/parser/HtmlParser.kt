@@ -1,8 +1,7 @@
 package net.xblacky.animexstream.utils.parser
 
 import io.realm.RealmList
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
+import net.xblacky.animexstream.utils.Result
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.*
 import org.jsoup.Jsoup
@@ -10,122 +9,152 @@ import org.jsoup.select.Elements
 import timber.log.Timber
 import java.lang.NullPointerException
 import java.util.regex.Pattern
+import kotlin.Exception
 
 class HtmlParser {
 
     companion object {
 
         fun parseRecentSubOrDub(
-            response: String?,
+            response: String,
             typeValue: Int,
         ): ArrayList<AnimeMetaModel> {
+            if (response.isEmpty())
+                throw ParserEmptyDataException()
             val animeMetaModelList: ArrayList<AnimeMetaModel> = ArrayList()
             val document = Jsoup.parse(response)
             val lists = document?.getElementsByClass("items")?.first()?.select("li")
-            var i = 0
-            Timber.e("List Size ${lists?.size}")
-            lists?.forEach { anime ->
-                val animeInfo = anime.getElementsByClass("name").first().select("a")
-                val title = animeInfo.attr("title")
-                val episodeUrl = animeInfo.attr("href")
-                val episodeNumber = anime.getElementsByClass("episode").first().text()
-                val animeImageInfo = anime.selectFirst("a")
-                val imageUrl = animeImageInfo.select("img").first().absUrl("src")
+            lists?.forEachIndexed { index, anime ->
+                try {
+                    val animeInfo = anime.getElementsByClass("name").first().select("a")
+                    val title = animeInfo.attr("title")
+                    val episodeUrl = animeInfo.attr("href")
+                    val episodeNumber = anime.getElementsByClass("episode").first().text()
+                    val animeImageInfo = anime.selectFirst("a")
+                    val imageUrl = animeImageInfo.select("img").first().absUrl("src")
 
-                animeMetaModelList.add(
-                    AnimeMetaModel(
-                        ID = "$title$typeValue".hashCode(),
-                        title = title,
-                        episodeNumber = episodeNumber,
-                        episodeUrl = episodeUrl,
-                        categoryUrl = getCategoryUrl(imageUrl),
-                        imageUrl = imageUrl,
-                        typeValue = typeValue,
-                        insertionOrder = i
+                    animeMetaModelList.add(
+                        AnimeMetaModel(
+                            ID = "$title$typeValue".hashCode(),
+                            title = title,
+                            episodeNumber = episodeNumber,
+                            episodeUrl = episodeUrl,
+                            categoryUrl = getCategoryUrl(imageUrl),
+                            imageUrl = imageUrl,
+                            typeValue = typeValue,
+                            insertionOrder = index
 
+                        )
                     )
-                )
-                i++
+                } catch (ignored: Exception) {
+                }
+
+            } ?: throw ParserListFetchException()
+            if (animeMetaModelList.isEmpty()) {
+                throw ParserListFetchException()
+            } else {
+                return animeMetaModelList
             }
-            return animeMetaModelList
+
 
         }
 
         fun parsePopular(response: String, typeValue: Int): ArrayList<AnimeMetaModel> {
             val animeMetaModelList: ArrayList<AnimeMetaModel> = ArrayList()
+            if (response.isEmpty())
+                throw ParserEmptyDataException()
             val document = Jsoup.parse(response)
             val lists =
                 document?.getElementsByClass("added_series_body popular")?.first()?.select("ul")
                     ?.first()?.select("li")
-            Timber.e("POPULAR\n\n\n")
-            var i = 0
+            lists?.forEachIndexed { index, anime ->
 
-            lists?.forEach { anime ->
+                try {
+                    val animeInfoFirst = anime.select("a").first()
+                    val imageDiv =
+                        animeInfoFirst.getElementsByClass("thumbnail-popular").first()
+                            .attr("style")
+                            .toString()
+                    val imageUrl =
+                        imageDiv.substring(
+                            imageDiv.indexOf('\'') + 1,
+                            imageDiv.lastIndexOf('\'')
+                        )
+                    val categoryUrl = animeInfoFirst.attr("href")
+                    val animeTitle = animeInfoFirst.attr("title")
+                    val animeInfoSecond = anime.select("p").last().select("a")
+                    val episodeUrl = animeInfoSecond.attr("href")
+                    val episodeNumber = animeInfoSecond.text()
+                    val genreHtmlList = anime.getElementsByClass("genres").first().select("a")
+                    val genreList = RealmList<GenreModel>()
+                    genreList.addAll(getGenreList(genreHtmlList))
 
-                val animeInfoFirst = anime.select("a").first()
-                val imageDiv =
-                    animeInfoFirst.getElementsByClass("thumbnail-popular").first().attr("style")
-                        .toString()
-                val imageUrl =
-                    imageDiv.substring(imageDiv.indexOf('\'') + 1, imageDiv.lastIndexOf('\''))
-                val categoryUrl = animeInfoFirst.attr("href")
-                val animeTitle = animeInfoFirst.attr("title")
-                val animeInfoSecond = anime.select("p").last().select("a")
-                val episodeUrl = animeInfoSecond.attr("href")
-                val episodeNumber = animeInfoSecond.text()
-                val genreHtmlList = anime.getElementsByClass("genres").first().select("a")
-//                Timber.e(genreHtmlList.toString())
-                val genreList = RealmList<GenreModel>()
-                genreList.addAll(getGenreList(genreHtmlList))
 
-
-
-                animeMetaModelList.add(
-                    AnimeMetaModel(
-                        ID = "$animeTitle$typeValue".hashCode(),
-                        title = animeTitle,
-                        episodeNumber = episodeNumber,
-                        episodeUrl = episodeUrl,
-                        categoryUrl = categoryUrl,
-                        imageUrl = imageUrl,
-                        typeValue = typeValue,
-                        genreList = genreList,
-                        insertionOrder = i
+                    animeMetaModelList.add(
+                        AnimeMetaModel(
+                            ID = "$animeTitle$typeValue".hashCode(),
+                            title = animeTitle,
+                            episodeNumber = episodeNumber,
+                            episodeUrl = episodeUrl,
+                            categoryUrl = categoryUrl,
+                            imageUrl = imageUrl,
+                            typeValue = typeValue,
+                            genreList = genreList,
+                            insertionOrder = index
+                        )
                     )
-                )
-                i++
-            }
-            return animeMetaModelList
+
+                } catch (ignored: Exception) {
+                    //Skip the iteration of that object and move to next
+                }
+
+
+            } ?: throw ParserListFetchException()
+            if (animeMetaModelList.isEmpty())
+                throw ParserListFetchException()
+            else
+                return animeMetaModelList
+
         }
 
         fun parseMovie(response: String, typeValue: Int): ArrayList<AnimeMetaModel> {
             val animeMetaModelList: ArrayList<AnimeMetaModel> = ArrayList()
+
+            if (response.isEmpty())
+                throw ParserEmptyDataException()
             val document = Jsoup.parse(response)
-            Timber.e("LOGCAT " + response)
             val lists = document?.getElementsByClass("items")?.first()?.select("li")
-            var i = 0
-            lists?.forEach {
-                val movieInfo = it.select("a").first()
-                val movieUrl = movieInfo.attr("href")
-                val movieName = movieInfo.attr("title")
-                val imageUrl = movieInfo.select("img").first().absUrl("src")
-                val releasedDate = it.getElementsByClass("released")?.first()?.text()
-                animeMetaModelList.add(
-                    AnimeMetaModel(
-                        ID = "$movieName$typeValue".hashCode().hashCode(),
-                        title = movieName,
-                        imageUrl = imageUrl,
-                        categoryUrl = movieUrl,
-                        episodeUrl = null,
-                        episodeNumber = null,
-                        typeValue = typeValue,
-                        insertionOrder = i,
-                        releasedDate = releasedDate
+            lists?.forEachIndexed { index, animeMovie ->
+                try {
+                    val movieInfo = animeMovie.select("a").first()
+                    val movieUrl = movieInfo.attr("href")
+                    val movieName = movieInfo.attr("title")
+                    val imageUrl = movieInfo.select("img").first().absUrl("src")
+                    val releasedDate =
+                        animeMovie.getElementsByClass("released")?.first()?.text()
+                    animeMetaModelList.add(
+                        AnimeMetaModel(
+                            ID = "$movieName$typeValue".hashCode().hashCode(),
+                            title = movieName,
+                            imageUrl = imageUrl,
+                            categoryUrl = movieUrl,
+                            episodeUrl = null,
+                            episodeNumber = null,
+                            typeValue = typeValue,
+                            insertionOrder = index,
+                            releasedDate = releasedDate
+                        )
                     )
-                )
-                i++
-            }
-            return animeMetaModelList
+                } catch (ignored: Exception) {
+                    //Skip Iteration and move to next
+                }
+
+            } ?: throw ParserListFetchException()
+            if (animeMetaModelList.isEmpty())
+                throw ParserListFetchException()
+            else
+                return animeMetaModelList
+
         }
 
         fun parseAnimeInfo(response: String): AnimeInfoModel {
@@ -273,4 +302,11 @@ class HtmlParser {
         }
 
     }
+
+    class ParserListFetchException(message: String = "Unable to parse Anime List") :
+        Exception(message)
+
+    class ParserEmptyDataException(message: String = "Unable to fetch from empty data") :
+        Exception(message)
+
 }

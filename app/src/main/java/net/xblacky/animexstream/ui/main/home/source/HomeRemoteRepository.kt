@@ -57,7 +57,7 @@ class HomeRemoteRepository
         }
     }
 
-    suspend fun fetchMovies(page: Int,type: Int): Result<ArrayList<AnimeMetaModel>> {
+    suspend fun fetchMovies(page: Int, type: Int): Result<ArrayList<AnimeMetaModel>> {
 
         return withContext(ioDispatcher) {
             try {
@@ -76,7 +76,7 @@ class HomeRemoteRepository
 
     }
 
-    suspend fun fetchNewestAnime(page: Int,type: Int): Result<ArrayList<AnimeMetaModel>> {
+    suspend fun fetchNewestAnime(page: Int, type: Int): Result<ArrayList<AnimeMetaModel>> {
         return withContext(ioDispatcher) {
             try {
                 val fetchNewestSeasonService =
