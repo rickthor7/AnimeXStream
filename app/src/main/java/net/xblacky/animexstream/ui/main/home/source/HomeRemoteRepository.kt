@@ -13,26 +13,24 @@ import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import java.lang.Exception
 import javax.inject.Inject
+import javax.sql.DataSource
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class HomeRemoteRepository
 @Inject constructor(
-    val retrofit: Retrofit,
-    @AppModules.RequestHeader val header: Map<String, String>,
-    @DispatcherModule.IoDispatcher val ioDispatcher: CoroutineDispatcher
-) {
+    private val homeNetworkService: NetworkInterface.HomeDataService,
+    @AppModules.RequestHeader
+    val header: Map<String, String>,
+    @DispatcherModule.IoDispatcher
+    val ioDispatcher: CoroutineDispatcher
+) : HomeDataSource {
 
 
-    suspend fun fetchRecentSubOrDub(page: Int, type: Int): Result<ArrayList<AnimeMetaModel>> {
+    override suspend fun getHomeData(page: Int, type: Int): Result<ArrayList<AnimeMetaModel>> {
         return withContext(ioDispatcher) {
             try {
-                val fetchHomeListService =
-                    retrofit.create(NetworkInterface.FetchRecentSubOrDub::class.java)
-                val response = fetchHomeListService.get(header, page, type)
-                val data = HtmlParser.parseRecentSubOrDub(
-                    response = response.string(),
-                    typeValue = type,
-                )
+                val response = callServiceBasedOnType(page, type).string()
+                val data = HtmlParser.parseDataBasedOnType(response, type)
                 Result.Success(data)
             } catch (exc: Exception) {
                 Result.Error(exc)
@@ -40,56 +38,25 @@ class HomeRemoteRepository
         }
     }
 
-    suspend fun fetchPopularFromAjax(page: Int, type: Int): Result<ArrayList<AnimeMetaModel>> {
-        return withContext(ioDispatcher) {
-            try {
-                val fetchPopularListService =
-                    retrofit.create(NetworkInterface.FetchPopularFromAjax::class.java)
-                val response = fetchPopularListService.get(header, page)
-                val data = HtmlParser.parsePopular(
-                    response = response.string(),
-                    typeValue = type,
-                )
-                Result.Success(data)
-            } catch (exc: Exception) {
-                Result.Error(exc)
-            }
-        }
+    override suspend fun saveData(animeList: ArrayList<AnimeMetaModel>) {
+        //Will Implement Later for Network Saving
     }
 
-    suspend fun fetchMovies(page: Int, type: Int): Result<ArrayList<AnimeMetaModel>> {
-
-        return withContext(ioDispatcher) {
-            try {
-                val fetchMoviesListService =
-                    retrofit.create(NetworkInterface.FetchMovies::class.java)
-                val response = fetchMoviesListService.get(header, page)
-                val data = HtmlParser.parseMovie(
-                    response = response.string(),
-                    typeValue = type,
-                )
-                Result.Success(data)
-            } catch (exc: Exception) {
-                Result.Error(exc)
-            }
-        }
-
+    override suspend fun removeData() {
+        //Will Implement for later Removing from Network
     }
 
-    suspend fun fetchNewestAnime(page: Int, type: Int): Result<ArrayList<AnimeMetaModel>> {
-        return withContext(ioDispatcher) {
-            try {
-                val fetchNewestSeasonService =
-                    retrofit.create(NetworkInterface.FetchNewestSeason::class.java)
-                val response = fetchNewestSeasonService.get(header, page)
-                val data = HtmlParser.parseMovie(
-                    response = response.string(),
-                    typeValue = type,
-                )
-                Result.Success(data)
-            } catch (exc: Exception) {
-                Result.Error(exc)
-            }
+    private suspend fun callServiceBasedOnType(page: Int, type: Int): ResponseBody {
+        return when (type) {
+            C.TYPE_RECENT_SUB, C.TYPE_RECENT_DUB -> homeNetworkService.fetchRecentSubOrDub(
+                header,
+                page,
+                type
+            )
+            C.TYPE_MOVIE -> homeNetworkService.fetchMovies(header, page)
+            C.TYPE_NEW_SEASON -> homeNetworkService.fetchNewestSeason(header, page)
+            C.TYPE_POPULAR_ANIME -> homeNetworkService.fetchNewestSeason(header, page)
+            else -> throw InvalidAnimeTypeException()
         }
     }
 

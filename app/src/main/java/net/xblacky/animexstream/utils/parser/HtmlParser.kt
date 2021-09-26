@@ -1,6 +1,7 @@
 package net.xblacky.animexstream.utils.parser
 
 import io.realm.RealmList
+import net.xblacky.animexstream.ui.main.home.source.InvalidAnimeTypeException
 import net.xblacky.animexstream.utils.Result
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.*
@@ -282,6 +283,22 @@ class HtmlParser {
             }
 
             return genreList
+        }
+
+        fun parseDataBasedOnType(
+            response: String,
+            type: Int
+        ): ArrayList<AnimeMetaModel> {
+            return when (type) {
+                C.TYPE_RECENT_SUB, C.TYPE_RECENT_DUB -> parseRecentSubOrDub(
+                    response,
+                    type
+                )
+                C.TYPE_MOVIE, C.TYPE_NEW_SEASON -> parseMovie(response, type)
+                C.TYPE_POPULAR_ANIME -> parsePopular(response, type)
+                else -> throw InvalidAnimeTypeException()
+            }
+
         }
 
         private fun formatInfoValues(infoValue: String): String {

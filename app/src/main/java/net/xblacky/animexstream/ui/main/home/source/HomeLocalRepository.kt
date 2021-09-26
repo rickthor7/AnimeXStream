@@ -11,10 +11,33 @@ import net.xblacky.animexstream.utils.realm.InitalizeRealm
 import javax.inject.Inject
 import net.xblacky.animexstream.utils.Result
 
-class HomeLocalRepository @Inject constructor(@DispatcherModule.IoDispatcher val dispatcher: CoroutineDispatcher) {
+class HomeLocalRepository @Inject constructor(@DispatcherModule.IoDispatcher val dispatcher: CoroutineDispatcher) :
+    HomeDataSource {
+    override suspend fun getHomeData(page: Int, type: Int): Result<ArrayList<AnimeMetaModel>> {
+        return withContext(dispatcher) {
+            val realm: Realm = Realm.getInstance(InitalizeRealm.getConfig())
+
+            val list: ArrayList<AnimeMetaModel> = ArrayList()
+            try {
+                val results =
+                    realm.where(AnimeMetaModel::class.java)?.equalTo("typeValue", type)
+                        ?.sort("insertionOrder", Sort.ASCENDING)?.findAll()
+                results?.let {
+                    list.addAll(realm.copyFromRealm(results))
+                }
+                Result.Success(list)
+
+            } catch (exc: Exception) {
+                Result.Error(exc)
+            } finally {
+                realm.close()
+            }
+        }
+
+    }
 
 
-    suspend fun addDataInRealm(animeList: ArrayList<AnimeMetaModel>) {
+    override suspend fun saveData(animeList: ArrayList<AnimeMetaModel>) {
 
         withContext(dispatcher) {
             val realm: Realm = Realm.getInstance(InitalizeRealm.getConfig())
@@ -30,7 +53,7 @@ class HomeLocalRepository @Inject constructor(@DispatcherModule.IoDispatcher val
 
     }
 
-    suspend fun removeFromRealm() {
+    override suspend fun removeData() {
         withContext(dispatcher) {
             val realm: Realm = Realm.getInstance(InitalizeRealm.getConfig())
             realm.executeTransaction {
@@ -47,25 +70,5 @@ class HomeLocalRepository @Inject constructor(@DispatcherModule.IoDispatcher val
 
     }
 
-    suspend fun fetchFromRealm(typeValue: Int): Result<ArrayList<AnimeMetaModel>> {
-        return withContext(dispatcher) {
-            val realm: Realm = Realm.getInstance(InitalizeRealm.getConfig())
 
-            val list: ArrayList<AnimeMetaModel> = ArrayList()
-            try {
-                val results =
-                    realm.where(AnimeMetaModel::class.java)?.equalTo("typeValue", typeValue)
-                        ?.sort("insertionOrder", Sort.ASCENDING)?.findAll()
-                results?.let {
-                    list.addAll(realm.copyFromRealm(results))
-                }
-                Result.Success(list)
-
-            } catch (exc: Exception) {
-                Result.Error(exc)
-            } finally {
-                realm.close()
-            }
-        }
-    }
 }
