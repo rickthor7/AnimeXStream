@@ -7,14 +7,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
-import dagger.hilt.components.SingletonComponent
-import net.xblacky.animexstream.ui.main.home.source.HomeDataSource
-import net.xblacky.animexstream.ui.main.home.source.HomeLocalRepository
-import net.xblacky.animexstream.ui.main.home.source.HomeRemoteRepository
+import net.xblacky.animexstream.ui.main.home.source.*
+import net.xblacky.animexstream.ui.main.home.source.local.HomeLocalRepository
+import net.xblacky.animexstream.ui.main.home.source.remote.HomeRemoteRepository
 import net.xblacky.animexstream.utils.rertofit.NetworkInterface
 import retrofit2.Retrofit
 import javax.inject.Qualifier
-import javax.inject.Singleton
 
 @InstallIn(ViewModelComponent::class)
 @Module
@@ -39,6 +37,9 @@ abstract class HomeRepositoryModule {
     @Qualifier
     annotation class RemoteRepo
 
+    @Qualifier
+    annotation class HomeRepo
+
     @LocalRepo
     @ViewModelScoped
     @Binds
@@ -48,4 +49,9 @@ abstract class HomeRepositoryModule {
     @ViewModelScoped
     @Binds
     abstract fun bindRemoteRepo(remoteRepo: HomeRemoteRepository): HomeDataSource
+
+    @HomeRepo
+    @Binds
+    @ViewModelScoped
+    abstract fun bindHomeRepo(homeRepo: HomeDefaultRepository): HomeRepository
 }

@@ -1,5 +1,6 @@
 package net.xblacky.animexstream.ui.main.home
 
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import net.xblacky.animexstream.ui.main.home.di.HomeRepositoryModule
+import net.xblacky.animexstream.ui.main.home.source.HomeDefaultRepository
 import net.xblacky.animexstream.ui.main.home.source.HomeRepository
 import net.xblacky.animexstream.utils.Result
 import net.xblacky.animexstream.utils.Utils
@@ -28,7 +31,7 @@ import kotlin.collections.ArrayList
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: HomeRepository,
+    @HomeRepositoryModule.HomeRepo private val repository: HomeRepository,
     @DispatcherModule.MainDispatcher val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -36,18 +39,18 @@ class HomeViewModel @Inject constructor(
         MutableLiveData(makeEmptyArrayList())
     var animeList: LiveData<ArrayList<HomeScreenModel>> = _animeList
 
+
     private var _updateModel: MutableLiveData<UpdateModel> = MutableLiveData()
     var updateModel: LiveData<UpdateModel> = _updateModel
     private lateinit var database: DatabaseReference
 
     init {
         fetchHomeList()
-        queryDB()
+
     }
 
-    private fun fetchHomeList() {
+    fun fetchHomeList() {
         viewModelScope.launch {
-
             val deferred = listOf(
                 async { fetchRecentSub() },
                 async { fetchRecentDub() },
@@ -59,53 +62,43 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun queryDB() {
-        database = Firebase.database.reference
-        val query: Query = database.child("appdata")
-        query.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onCancelled(ignored: DatabaseError) {
-                Timber.e(ignored.message)
+
+    //TODO Move this code to Main Activity Repo
+//    private fun queryDB() {
+//        database = Firebase.database.reference
+//        val query: Query = database.child("appdata")
+//        query.addListenerForSingleValueEvent(object : ValueEventListener {
+//            override fun onCancelled(ignored: DatabaseError) {
+//                Timber.e(ignored.message)
+//            }
+//
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                Timber.e(snapshot.toString())
+//                _updateModel.value = UpdateModel(
+//                    versionCode = snapshot.child("versionCode").value as Long,
+//                    whatsNew = snapshot.child("whatsNew").value.toString()
+//                )
+//            }
+//
+//        })
+//    }
+
+
+    private fun updateData(result: Result<ArrayList<AnimeMetaModel>>, typeValue: Int) {
+        if (result is Result.Success) {
+            val homeScreenModel = HomeScreenModel(
+                typeValue = typeValue,
+                type = Utils.getTypeName(typeValue),
+                animeList = result.data
+            )
+            val newList = animeList.value
+            try {
+                newList?.set(getPositionByType(typeValue), homeScreenModel)
+
+            } catch (iobe: IndexOutOfBoundsException) {
             }
-
-            override fun onDataChange(snapshot: DataSnapshot) {
-                Timber.e(snapshot.toString())
-                _updateModel.value = UpdateModel(
-                    versionCode = snapshot.child("versionCode").value as Long,
-                    whatsNew = snapshot.child("whatsNew").value.toString()
-                )
-            }
-
-        })
-    }
-
-
-    private fun updateError(e: Throwable) {
-        var isListEmpty = true
-        animeList.value?.forEach {
-            if (!it.animeList.isNullOrEmpty()) {
-                isListEmpty = false
-            }
+            _animeList.postValue(newList)
         }
-//        super.updateErrorModel(true , e , isListEmpty)
-
-    }
-
-
-    private fun updateList(list: ArrayList<AnimeMetaModel>, typeValue: Int) {
-        val homeScreenModel = HomeScreenModel(
-            typeValue = typeValue,
-            type = Utils.getTypeName(typeValue),
-            animeList = list
-        )
-        Timber.e("Update List Called with type ${homeScreenModel.type}")
-        Timber.e("List Called type value: $typeValue")
-        val newList = animeList.value
-        try {
-            newList?.set(getPositionByType(typeValue), homeScreenModel)
-
-        } catch (iobe: IndexOutOfBoundsException) {
-        }
-        _animeList.postValue(newList)
     }
 
     private fun getPositionByType(typeValue: Int): Int {
@@ -134,62 +127,41 @@ class HomeViewModel @Inject constructor(
         return arrayList
     }
 
-    private fun fetchRecentSub() {
-        viewModelScope.launch(dispatcher) {
-            repository.fetchRecentSub(1, C.RECENT_SUB).collect {
-                if (it is Result.Success) {
-                    updateList(it.data, C.TYPE_RECENT_SUB)
-                }
-            }
+    private suspend fun fetchRecentSub() {
+        repository.fetchHomeData(1, C.RECENT_SUB).collect {
+            updateData(it, C.TYPE_RECENT_SUB)
         }
     }
 
-    private fun fetchRecentDub() {
-        viewModelScope.launch(dispatcher) {
-            repository.fetchRecentDub(1, C.TYPE_RECENT_DUB).collect {
-                if (it is Result.Success) {
-                    Timber.e("Recent Dub Called")
-                    updateList(it.data, C.TYPE_RECENT_DUB)
-                }
-            }
+    private suspend fun fetchRecentDub() {
+        repository.fetchHomeData(1, C.TYPE_RECENT_DUB).collect {
+            updateData(it, C.TYPE_RECENT_DUB)
         }
     }
 
-    private fun fetchMovies() {
-
-        viewModelScope.launch(dispatcher) {
-            repository.fetchMovies(1, C.TYPE_MOVIE).collect {
-                if (it is Result.Success) {
-                    updateList(it.data, C.TYPE_MOVIE)
-                }
-            }
+    @VisibleForTesting
+    private suspend fun fetchMovies() {
+        repository.fetchHomeData(1, C.TYPE_MOVIE).collect {
+            updateData(it, C.TYPE_MOVIE)
         }
     }
 
-    private fun fetchPopular() {
-        viewModelScope.launch(dispatcher) {
-            repository.fetchPopular(1, C.TYPE_POPULAR_ANIME).collect {
-                if (it is Result.Success) {
-                    updateList(it.data, C.TYPE_POPULAR_ANIME)
-                }
-            }
+    private suspend fun fetchPopular() {
+        repository.fetchHomeData(1, C.TYPE_POPULAR_ANIME).collect {
+            updateData(it, C.TYPE_POPULAR_ANIME)
         }
     }
 
-    override fun onCleared() {
+     override fun onCleared() {
         viewModelScope.launch(dispatcher) {
             repository.removeOldData()
         }
         super.onCleared()
     }
 
-    private fun fetchNewSeason() {
-        viewModelScope.launch(dispatcher) {
-            repository.fetchNewSeasons(1, C.TYPE_NEW_SEASON).collect {
-                if (it is Result.Success) {
-                    updateList(it.data, C.TYPE_NEW_SEASON)
-                }
-            }
+    private suspend fun fetchNewSeason() {
+        repository.fetchHomeData(1, C.TYPE_NEW_SEASON).collect {
+            updateData(it, C.TYPE_NEW_SEASON)
         }
     }
 

@@ -1,7 +1,9 @@
-package net.xblacky.animexstream.ui.main.home.source
+package net.xblacky.animexstream.ui.main.home.source.remote
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import net.xblacky.animexstream.ui.main.home.source.HomeDataSource
+import net.xblacky.animexstream.ui.main.home.source.InvalidAnimeTypeException
 import net.xblacky.animexstream.utils.Result
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.di.AppModules
@@ -10,10 +12,8 @@ import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.parser.HtmlParser
 import net.xblacky.animexstream.utils.rertofit.NetworkInterface
 import okhttp3.ResponseBody
-import retrofit2.Retrofit
 import java.lang.Exception
 import javax.inject.Inject
-import javax.sql.DataSource
 
 @Suppress("BlockingMethodInNonBlockingContext")
 class HomeRemoteRepository
@@ -55,7 +55,7 @@ class HomeRemoteRepository
             )
             C.TYPE_MOVIE -> homeNetworkService.fetchMovies(header, page)
             C.TYPE_NEW_SEASON -> homeNetworkService.fetchNewestSeason(header, page)
-            C.TYPE_POPULAR_ANIME -> homeNetworkService.fetchNewestSeason(header, page)
+            C.TYPE_POPULAR_ANIME -> homeNetworkService.fetchPopularFromAjax(header, page)
             else -> throw InvalidAnimeTypeException()
         }
     }
