@@ -1,21 +1,17 @@
 package net.xblacky.animexstream.ui.main.home
 
-import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.database.DatabaseReference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.xblacky.animexstream.ui.main.home.di.HomeRepositoryModule
-import net.xblacky.animexstream.ui.main.home.source.HomeDefaultRepository
 import net.xblacky.animexstream.ui.main.home.source.HomeRepository
 import net.xblacky.animexstream.utils.Result
 import net.xblacky.animexstream.utils.Utils
@@ -24,10 +20,7 @@ import net.xblacky.animexstream.utils.di.DispatcherModule
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.model.HomeScreenModel
 import net.xblacky.animexstream.utils.model.UpdateModel
-import timber.log.Timber
-import java.lang.IndexOutOfBoundsException
 import javax.inject.Inject
-import kotlin.collections.ArrayList
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -51,14 +44,13 @@ class HomeViewModel @Inject constructor(
 
     fun fetchHomeList() {
         viewModelScope.launch {
-            val deferred = listOf(
-                async { fetchRecentSub() },
-                async { fetchRecentDub() },
-                async { fetchPopular() },
-                async { fetchNewSeason() },
-                async { fetchMovies() }
-            )
-            deferred.awaitAll()
+
+            withContext(Dispatchers.Default) { fetchRecentSub() }
+            withContext(Dispatchers.Default) { fetchRecentDub() }
+            withContext(Dispatchers.Default) { fetchPopular() }
+            withContext(Dispatchers.Default) { fetchNewSeason() }
+            withContext(Dispatchers.Default) { fetchMovies() }
+
         }
     }
 
@@ -139,7 +131,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    @VisibleForTesting
     private suspend fun fetchMovies() {
         repository.fetchHomeData(1, C.TYPE_MOVIE).collect {
             updateData(it, C.TYPE_MOVIE)

@@ -39,6 +39,10 @@ android {
     }
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
+        useIR = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.0.3'
     }
     defaultConfig {
         applicationId "net.xblacky.animexstream"
@@ -60,6 +64,10 @@ android {
             signingConfig signingConfigs.release
         }
     }
+    buildFeatures {
+        // Enables Jetpack Compose for this module
+        compose true
+    }
     splits {
 
         // Configures multiple APKs based on ABI.
@@ -67,20 +75,17 @@ android {
 
             // Enables building multiple APKs per ABI.
             enable true
-
             // By default all ABIs are included, so use reset() and include to specify that we only
             // want APKs for x86 and x86_64.
-
             // Resets the list of ABIs that Gradle should create APKs for to none.
             reset()
-
             // Specifies a list of ABIs that Gradle should create APKs for.
             include "x86", "armeabi-v7a", "arm64-v8a", "x86_64"
-
             // Specifies that we do not want to also generate a universal APK that includes all ABIs.
             universalApk true
         }
     }
+
 
 }
 
@@ -99,7 +104,7 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview:1.2.1"
 
     //For HTML Parsing
-    implementation 'org.jsoup:jsoup:1.11.3'
+    implementation 'org.jsoup:jsoup:1.12.2'
 
     //For Network Request
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
@@ -132,8 +137,23 @@ dependencies {
     //Expandable TextView
     implementation 'com.ms-square:expandableTextView:0.1.4'
 
+    //Animation
+    implementation 'com.daimajia.androidanimations:library:2.4@aar'
+
+
+    //Jetpack Compose
+    implementation("androidx.compose.compiler:compiler:1.0.3")
+    implementation("androidx.compose.ui:ui:1.0.3")
+    implementation("androidx.compose.ui:ui-tooling:1.0.3")
+    implementation("androidx.compose.material:material:1.0.3")
+    implementation("androidx.compose.foundation:foundation:1.0.3")
+    implementation("androidx.compose.runtime:runtime-livedata:1.0.3")
+
+    //Coil Image Loading
+    implementation("io.coil-kt:coil-compose:1.3.2")
+
     //Navigation Library
-    def nav_version = "2.3.0"
+    def nav_version = "2.3.5"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
@@ -147,8 +167,6 @@ dependencies {
     //Dependency Injections
     implementation("com.google.dagger:hilt-android:2.38.1")
     kapt("com.google.dagger:hilt-android-compiler:2.38.1")
-
-
 
 
     //Test Dependencies
