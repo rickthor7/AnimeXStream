@@ -25,4 +25,7 @@
     <string name="prev_ep">Prev. Ep.</string>
     <string name="next_ep">Next Ep.</string>
     <string name="qualityAuto">Quality(Auto)</string>
+    <string name="_10">10</string>
+    <string name="_plus10">+10</string>
+    <string name="_minus10">-10</string>
 </resources>

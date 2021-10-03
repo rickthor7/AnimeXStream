@@ -79,7 +79,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
             Content(
                 animeName = animeName ?: "",
                 episodeUrl = url,
-                episodeName = animeName!! + " (" + episodeNumber!! + ")",
+                episodeName = episodeNumber,
                 url = ""
             )
         )
@@ -108,7 +108,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     override fun onStop() {
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
-            &&  hasPipPermission()
+            && hasPipPermission()
         ) {
             finishAndRemoveTask()
         }
@@ -133,7 +133,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
             && (playerFragment as VideoPlayerFragment).isVideoPlaying()
             && hasPipPermission()
         ) {
-            try{
+            try {
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     val params = PictureInPictureParams.Builder()
@@ -141,7 +141,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                 } else {
                     this.enterPictureInPictureMode()
                 }
-            }catch (ex:Exception){
+            } catch (ex: Exception) {
                 Timber.e(ex.message)
             }
 
@@ -214,7 +214,8 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
         val attrib = window.attributes
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            attrib.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            attrib.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
     }
@@ -227,7 +228,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.updateEpisodeContent(
             Content(
                 episodeUrl = content.nextEpisodeUrl,
-                episodeName = "$animeName (EP ${incrimentEpisodeNumber(content.episodeName!!)})",
+                episodeName = "(EP ${incrimentEpisodeNumber(content.episodeName!!)})",
                 url = "",
                 animeName = content.animeName
             )
@@ -241,7 +242,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.updateEpisodeContent(
             Content(
                 episodeUrl = content.previousEpisodeUrl,
-                episodeName = "$animeName (EP ${decrimentEpisodeNumber(content.episodeName!!)})",
+                episodeName = "$(EP ${decrimentEpisodeNumber(content.episodeName!!)})",
                 url = "",
                 animeName = content.animeName
             )

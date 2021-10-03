@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v4.media.session.MediaSessionCompat
 import android.view.*
+import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
@@ -38,6 +39,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.utils.Utils
+import net.xblacky.animexstream.utils.animation.CustomAnimation
 import net.xblacky.animexstream.utils.constants.C.Companion.ERROR_CODE_DEFAULT
 import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTION
 import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
@@ -65,6 +67,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     private var trackSelector: DefaultTrackSelector? = null
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
+    private val SEEK_DISTANCE = 10000L
 
     private var mappedTrackInfo: MappingTrackSelector.MappedTrackInfo? = null
     private lateinit var audioManager: AudioManager
@@ -151,7 +154,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     private fun setClickListeners() {
         rootView.exo_track_selection_view.setOnClickListener(this)
         rootView.exo_speed_selection_view.setOnClickListener(this)
-        rootView.exo_forward.setOnClickListener(this)
+        rootView.exo_rew.setOnClickListener(this)
+        rootView.exo_ffwd.setOnClickListener(this)
         rootView.errorButton.setOnClickListener(this)
         rootView.back.setOnClickListener(this)
         rootView.nextEpisode.setOnClickListener(this)
@@ -185,7 +189,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     fun updateContent(content: Content) {
         Timber.e("Content Updated uRL: ${content.url}")
         this.content = content
-        episodeName.text = content.episodeName
+        animeName.text = content.animeName
+        val text = "\"${content.episodeName}\""
+        episodeName.text = text
         exoPlayerView.videoSurfaceView.visibility = View.GONE
 
         this.content.nextEpisodeUrl?.let {
@@ -243,8 +249,11 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
             R.id.nextEpisode -> {
                 playNextEpisode()
             }
-            R.id.exo_forward -> {
+            R.id.exo_ffwd -> {
                 seekForward()
+            }
+            R.id.exo_rew -> {
+                seekRewind()
             }
             R.id.previousEpisode -> {
                 playPreviousEpisode()
@@ -278,12 +287,34 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     }
 
     private fun seekForward() {
-        exo_forward.animate().rotation(45f).setDuration(250).withEndAction {
-            exo_forward.animate().rotation(0f).setDuration(100).start()
+        seekExoPlayerForward()
+        CustomAnimation.rotateForward(exo_ffwd)
+        CustomAnimation.forwardAnimate(exo_forward_plus, exo_forward_text)
+    }
+
+    private fun seekExoPlayerForward() {
+        val isSeekForwardAvailable = (player.duration - player.currentPosition) > SEEK_DISTANCE
+        if (isSeekForwardAvailable) {
+            player.seekTo(player.currentPosition + SEEK_DISTANCE)
+        } else {
+            player.seekTo(player.duration)
         }
     }
 
-    private fun seekBack() {
+    private fun seekRewind() {
+        seekExoPlayerBackward()
+        CustomAnimation.rotateBackward(exo_rew)
+        CustomAnimation.rewindAnimate(exo_rewind_minus, exo_rewind_text)
+    }
+
+    private fun seekExoPlayerBackward() {
+        val isSeekBackwardAvailable = (player.currentPosition - SEEK_DISTANCE) > 0
+        if (isSeekBackwardAvailable) {
+            player.seekTo(player.currentPosition - SEEK_DISTANCE)
+        } else {
+            player.seekTo(0L)
+        }
+
     }
 
     private fun playNextEpisode() {

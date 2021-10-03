@@ -6,11 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.DatabaseReference
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.xblacky.animexstream.ui.main.home.di.HomeRepositoryModule
 import net.xblacky.animexstream.ui.main.home.source.HomeRepository
 import net.xblacky.animexstream.utils.Result
@@ -45,11 +42,15 @@ class HomeViewModel @Inject constructor(
     fun fetchHomeList() {
         viewModelScope.launch {
 
-            withContext(Dispatchers.Default) { fetchRecentSub() }
-            withContext(Dispatchers.Default) { fetchRecentDub() }
-            withContext(Dispatchers.Default) { fetchPopular() }
-            withContext(Dispatchers.Default) { fetchNewSeason() }
-            withContext(Dispatchers.Default) { fetchMovies() }
+            listOf(
+                async { fetchPopular() },
+                async { fetchRecentSub() },
+                async { fetchRecentDub() },
+                async { fetchMovies() },
+                async { fetchNewSeason() }
+
+            )
+
 
         }
     }
@@ -143,7 +144,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-     override fun onCleared() {
+    override fun onCleared() {
         viewModelScope.launch(dispatcher) {
             repository.removeOldData()
         }

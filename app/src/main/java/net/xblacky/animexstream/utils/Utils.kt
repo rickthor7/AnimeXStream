@@ -10,8 +10,8 @@ class Utils {
     companion object {
 
         fun getRemainingTime(watchedDuration: Long, totalDuration: Long): String {
-            val remainingDuration = totalDuration - watchedDuration
-            return if (remainingDuration > 0) {
+            return if (totalDuration > watchedDuration) {
+                val remainingDuration = totalDuration - watchedDuration
                 val s: Long = remainingDuration / 1000 % 60
                 val m: Long = remainingDuration / 1000 / 60
                 String.format("%02d:%02d", m, s)

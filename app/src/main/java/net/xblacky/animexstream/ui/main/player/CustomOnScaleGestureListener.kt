@@ -37,12 +37,12 @@ class CustomOnScaleGestureListener(
                 scaleByFloat =
                     TouchUtils.calculateScale(player = player)
                 CustomAnimation.zoomInByScale(scaleBy = scaleByFloat, player = player)
-                player.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                player.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
 
 
             }
         } else {
-            if (player.resizeMode == AspectRatioFrameLayout.RESIZE_MODE_ZOOM) {
+            if (player.resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FILL) {
                 CustomAnimation.zoomOutByScale(scaleBy = scaleByFloat, player = player)
                 player.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
 
