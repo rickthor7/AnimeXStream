@@ -12,13 +12,16 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView.OnEditorActionListener
+import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.transition.MaterialElevationScale
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_search.view.*
 import kotlinx.android.synthetic.main.loading.view.*
@@ -41,21 +44,22 @@ class SearchFragment : Fragment(), View.OnClickListener,
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         rootView = inflater.inflate(R.layout.fragment_search, container, false)
+        return rootView
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
+        setupTransitions(view)
+        setObserver()
         setOnClickListeners()
         setAdapters()
         setRecyclerViewScroll()
         setEditTextListener()
-        showKeyBoard()
-        return rootView
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(SearchViewModel::class.java)
-        setObserver()
-    }
 
     private fun setEditTextListener() {
         rootView.searchEditText.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
@@ -76,9 +80,10 @@ class SearchFragment : Fragment(), View.OnClickListener,
 
     private fun setAdapters() {
         searchController = SearchController(this)
-        searchController.spanCount = Utils.calculateNoOfColumns(context!!, 150f)
+        searchController.spanCount = Utils.calculateNoOfColumns(requireContext(), 150f)
         rootView.searchRecyclerView.apply {
-            layoutManager = GridLayoutManager(context, Utils.calculateNoOfColumns(context!!, 150f))
+            layoutManager =
+                GridLayoutManager(context, Utils.calculateNoOfColumns(requireContext(), 150f))
             adapter = searchController.adapter
             (layoutManager as GridLayoutManager).spanSizeLookup = searchController.spanSizeLookup
         }
@@ -190,21 +195,41 @@ class SearchFragment : Fragment(), View.OnClickListener,
     }
 
     private fun hideKeyBoard() {
-        val imm = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(activity?.currentFocus?.windowToken, 0)
+        val imm =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
     }
 
     private fun showKeyBoard() {
-        val imm = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showSoftInput(activity?.currentFocus, 0)
+        val imm =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(requireActivity().currentFocus, 0)
     }
 
-    override fun animeTitleClick(model: AnimeMetaModel) {
+    override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {
+        val extras = FragmentNavigatorExtras(
+            sharedTitle to resources.getString(R.string.shared_anime_title),
+            sharedImage to resources.getString(R.string.shared_anime_image)
+        )
         findNavController().navigate(
             SearchFragmentDirections.actionSearchFragmentToAnimeInfoFragment(
-                categoryUrl = model.categoryUrl
-            )
+                categoryUrl = model.categoryUrl,
+                animeImageUrl = model.imageUrl,
+                animeName = model.title
+            ),
+            extras
         )
+    }
+
+    private fun setupTransitions(view: View) {
+        postponeEnterTransition()
+        view.doOnPreDraw { startPostponedEnterTransition() }
+//        exitTransition = Fade(false).apply {
+//            duration = 300
+//        }
+//        reenterTransition = MaterialElevationScale(true).apply {
+//            duration = 300
+//        }
     }
 
     private fun isNetworkAvailable(): Boolean {

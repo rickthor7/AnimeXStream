@@ -28,4 +28,9 @@
     <string name="_10">10</string>
     <string name="_plus10">+10</string>
     <string name="_minus10">-10</string>
+
+    <string name="shared_anime_title">shared_anime_title</string>
+    <string name="shared_anime_image">shared_anime_image</string>
+    <string name="favourite_transition">favourite_transition</string>
+    <string name="episode_transition">episode_transition</string>
 </resources>

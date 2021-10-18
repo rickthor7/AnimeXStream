@@ -9,17 +9,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v4.media.session.MediaSessionCompat
 import android.view.*
-import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.daimajia.androidanimations.library.Techniques
-import com.daimajia.androidanimations.library.YoYo
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
-import com.google.android.exoplayer2.source.ExtractorMediaSource
+import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.source.hls.HlsDataSourceFactory
@@ -43,6 +40,7 @@ import net.xblacky.animexstream.utils.animation.CustomAnimation
 import net.xblacky.animexstream.utils.constants.C.Companion.ERROR_CODE_DEFAULT
 import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTION
 import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
+import net.xblacky.animexstream.utils.exoplayer.CustomTrackSelection
 import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.preference.Preference
 import timber.log.Timber
@@ -50,9 +48,10 @@ import java.io.IOException
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import net.xblacky.animexstream.utils.touchevents.TouchUtils
+import okhttp3.Call
 
 
-class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListener,
+class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     AudioManager.OnAudioFocusChangeListener {
 
 
@@ -63,8 +62,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     private lateinit var videoUrl: String
     private lateinit var rootView: View
     private lateinit var player: SimpleExoPlayer
-    private lateinit var trackSelectionFactory: TrackSelection.Factory
-    private var trackSelector: DefaultTrackSelector? = null
+    private lateinit var trackSelectionFactory: ExoTrackSelection.Factory
+    private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaSessionConnector: MediaSessionConnector
     private val SEEK_DISTANCE = 10000L
@@ -97,7 +96,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         initializeAudioManager()
         initializePlayer()
         sharedPreferences = Preference(requireContext())
-        retainInstance = true
         return rootView
     }
 
@@ -122,8 +120,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     private fun initializePlayer() {
         rootView.exoPlayerFrameLayout.setAspectRatio(16f / 9f)
         trackSelectionFactory = AdaptiveTrackSelection.Factory()
-        trackSelector = DefaultTrackSelector(trackSelectionFactory)
-        player = ExoPlayerFactory.newSimpleInstance(context, trackSelector)
+        trackSelector = DefaultTrackSelector(requireContext(), trackSelectionFactory)
+        player = SimpleExoPlayer.Builder(requireContext()).setTrackSelector(trackSelector).build()
+
 
         val audioAttributes: AudioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
@@ -131,9 +130,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
             .build()
 
         player.playWhenReady = true
-        player.audioAttributes = audioAttributes
+        player.setAudioAttributes(audioAttributes, true)
         player.addListener(this)
-        player.seekParameters = SeekParameters.CLOSEST_SYNC
+        player.setSeekParameters(SeekParameters.CLOSEST_SYNC)
         rootView.exoPlayerView.player = player
 
 
@@ -166,22 +165,25 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
 
 
         val lastPath = uri.lastPathSegment
-        val defaultDataSourceFactory =
-            DefaultHttpDataSourceFactory("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36")
 
+//        val defaultDataSourceFactory = OkHttpDataSource.Factory(Call.Factory)
+
+        val defaultDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36")
+        val mediaItem = MediaItem.fromUri(uri)
         return if (lastPath!!.contains("m3u8")) {
             HlsMediaSource.Factory(
                 HlsDataSourceFactory {
                     val dataSource: HttpDataSource =
-                        DefaultHttpDataSource("Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Mobile Safari/537.36")
+                        defaultDataSourceFactory.createDataSource()
                     dataSource.setRequestProperty("Referer", sharedPreferences.getReferrer())
                     dataSource
                 })
                 .setAllowChunklessPreparation(true)
-                .createMediaSource(uri)
+                .createMediaSource(mediaItem)
         } else {
-            ExtractorMediaSource.Factory(defaultDataSourceFactory)
-                .createMediaSource(uri)
+            DefaultMediaSourceFactory(defaultDataSourceFactory)
+                .createMediaSource(mediaItem)
         }
 
     }
@@ -190,9 +192,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         Timber.e("Content Updated uRL: ${content.url}")
         this.content = content
         animeName.text = content.animeName
-        val text = "\"${content.episodeName}\""
+        val text = content.episodeName
         episodeName.text = text
-        exoPlayerView.videoSurfaceView.visibility = View.GONE
+        exoPlayerView.videoSurfaceView?.visibility = View.GONE
 
         this.content.nextEpisodeUrl?.let {
             nextEpisode.visibility = View.VISIBLE
@@ -204,6 +206,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         } ?: kotlin.run {
             previousEpisode.visibility = View.GONE
         }
+
         if (!content.url.isNullOrEmpty()) {
             updateVideoUrl(URLDecoder.decode(content.url, StandardCharsets.UTF_8.name()))
         } else {
@@ -228,7 +231,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
         seekTo?.let {
             player.seekTo(it)
         }
-        player.prepare(mediaSource, false, false)
+        player.setMediaSource(mediaSource)
         player.playWhenReady = playWhenReady
     }
 
@@ -386,16 +389,23 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
 
 
     private fun showDialog() {
-        mappedTrackInfo = trackSelector?.currentMappedTrackInfo
+        mappedTrackInfo = trackSelector.currentMappedTrackInfo
 
         try {
-            TrackSelectionDialogBuilder(
-                context,
-                getString(R.string.video_quality),
-                trackSelector,
-                0
+//            TrackSelectionDialogBuilder(
+//                requireContext(),
+//                getString(R.string.video_quality),
+//                trackSelector,
+//                0,
+//
+//                ).build().show()
 
-            ).build().show()
+            CustomTrackSelection(
+                context = requireContext(),
+                title = "Video Quality",
+                trackSelector = trackSelector,
+                0
+            ).showQuality()
         } catch (ignored: java.lang.NullPointerException) {
         }
     }
@@ -442,11 +452,12 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     }
 
     override fun onTracksChanged(
-        trackGroups: TrackGroupArray?,
-        trackSelections: TrackSelectionArray?
+        trackGroups: TrackGroupArray,
+        trackSelections: TrackSelectionArray
     ) {
         try {
-            val videoQuality = trackSelections!!.get(0)!!.selectedFormat!!.height.toString() + "p"
+            Timber.e(trackSelections.toString())
+            val videoQuality = trackSelections.get(0)?.getFormat(0)?.height.toString() + "p"
             val quality = "Quality($videoQuality)"
             exoQuality.text = quality
         } catch (ignore: NullPointerException) {
@@ -454,35 +465,34 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
 
     }
 
-    override fun onPlayerError(error: ExoPlaybackException?) {
+    override fun onPlayerError(error: PlaybackException) {
         isVideoPlaying = false
-        if (error!!.type === ExoPlaybackException.TYPE_SOURCE) {
-            val cause: IOException = error!!.sourceException
-            if (cause is HttpDataSource.HttpDataSourceException) {
-                // An HTTP error occurred.
-                val httpError: HttpDataSource.HttpDataSourceException = cause
-                // This is the request for which the error occurred.
-                // querying the cause.
-                if (httpError is InvalidResponseCodeException) {
-                    val responseCode = httpError.responseCode
-                    content.url = ""
-                    showErrorLayout(
-                        show = true,
-                        errorMsgId = R.string.server_error,
-                        errorCode = RESPONSE_UNKNOWN
-                    )
+        val cause = error.cause
+        if (cause is HttpDataSource.HttpDataSourceException) {
+            // An HTTP error occurred.
+            val httpError: HttpDataSource.HttpDataSourceException = cause
+            // This is the request for which the error occurred.
+            // querying the cause.
+            if (httpError is InvalidResponseCodeException) {
+                val responseCode = httpError.responseCode
+                content.url = ""
+                showErrorLayout(
+                    show = true,
+                    errorMsgId = R.string.server_error,
+                    errorCode = RESPONSE_UNKNOWN
+                )
 
-                    Timber.e("Response Code $responseCode")
-                    // message and headers.
-                } else {
-                    showErrorLayout(
-                        show = true,
-                        errorMsgId = R.string.no_internet,
-                        errorCode = NO_INTERNET_CONNECTION
-                    )
-                }
+                Timber.e("Response Code $responseCode")
+                // message and headers.
+            } else {
+                showErrorLayout(
+                    show = true,
+                    errorMsgId = R.string.no_internet,
+                    errorCode = NO_INTERNET_CONNECTION
+                )
             }
         }
+
     }
 
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
@@ -500,7 +510,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
             showLoading(false)
         }
         if (playbackState == Player.STATE_READY) {
-            exoPlayerView.videoSurfaceView.visibility = View.VISIBLE
+            exoPlayerView.videoSurfaceView?.visibility = View.VISIBLE
         }
     }
 
@@ -606,7 +616,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.EventListen
     }
 
     private fun registerMediaSession() {
-        mediaSession = MediaSessionCompat(context, TAG)
+        mediaSession = MediaSessionCompat(requireContext(), TAG)
 //        if (::content.isInitialized) {
 //
 ////            val mediaMetadataCompat = MediaMetadataCompat.Builder()

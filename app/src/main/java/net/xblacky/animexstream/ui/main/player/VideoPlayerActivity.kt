@@ -6,15 +6,21 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.Window
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.transition.platform.MaterialContainerTransform
+import com.google.android.material.transition.platform.MaterialContainerTransformSharedElementCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_video_player.*
 import kotlinx.android.synthetic.main.fragment_video_player.*
@@ -23,6 +29,12 @@ import net.xblacky.animexstream.R
 import net.xblacky.animexstream.utils.model.Content
 import timber.log.Timber
 import java.lang.Exception
+import android.view.WindowInsetsController
+
+import android.view.WindowInsets
+
+
+
 
 class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
@@ -31,8 +43,11 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     private var animeName: String? = ""
     private lateinit var content: Content
     override fun onCreate(savedInstanceState: Bundle?) {
+        window.requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
+        setupTransitions()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_player)
+
         viewModel = ViewModelProvider(this).get(VideoPlayerViewModel::class.java)
         getExtra(intent)
 //        (playerFragment as VideoPlayerFragment).updateContent(Content(
@@ -41,6 +56,18 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 //        ))
         setObserver()
         goFullScreen()
+    }
+
+    private fun setupTransitions() {
+        setEnterSharedElementCallback(MaterialContainerTransformSharedElementCallback())
+        window.enterTransition = MaterialContainerTransform().apply {
+            addTarget(R.id.playerActivityContainer)
+            scrimColor = Color.TRANSPARENT
+            fadeMode =  MaterialContainerTransform.FADE_MODE_THROUGH
+            startContainerColor = ContextCompat.getColor(applicationContext, android.R.color.transparent)
+            endContainerColor = ContextCompat.getColor(applicationContext, android.R.color.transparent)
+            duration = 300L
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -79,7 +106,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
             Content(
                 animeName = animeName ?: "",
                 episodeUrl = url,
-                episodeName = episodeNumber,
+                episodeName = "\"$episodeNumber\"",
                 url = ""
             )
         )
@@ -207,15 +234,19 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     }
 
     private fun goFullScreen() {
-        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN)
-        window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-
-        val attrib = window.attributes
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            attrib.layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+            val controller = window.insetsController
+            if (controller != null) {
+                controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        }else{
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
+            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
         }
 
     }
@@ -228,7 +259,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.updateEpisodeContent(
             Content(
                 episodeUrl = content.nextEpisodeUrl,
-                episodeName = "(EP ${incrimentEpisodeNumber(content.episodeName!!)})",
+                episodeName = "\"EP ${incrimentEpisodeNumber(content.episodeName!!)}\"",
                 url = "",
                 animeName = content.animeName
             )
@@ -242,7 +273,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.updateEpisodeContent(
             Content(
                 episodeUrl = content.previousEpisodeUrl,
-                episodeName = "$(EP ${decrimentEpisodeNumber(content.episodeName!!)})",
+                episodeName = "\"EP ${decrimentEpisodeNumber(content.episodeName!!)}\"",
                 url = "",
                 animeName = content.animeName
             )
@@ -252,9 +283,10 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
     private fun incrimentEpisodeNumber(episodeName: String): String {
         return try {
+            Timber.e("Episode Name $episodeName")
             val episodeString = episodeName.substring(
                 episodeName.lastIndexOf(' ') + 1,
-                episodeName.lastIndexOf(')')
+                episodeName.lastIndex
             )
             var episodeNumber = Integer.parseInt(episodeString)
             episodeNumber++
@@ -269,7 +301,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         return try {
             val episodeString = episodeName.substring(
                 episodeName.lastIndexOf(' ') + 1,
-                episodeName.lastIndexOf(')')
+                episodeName.lastIndex
             )
             var episodeNumber = Integer.parseInt(episodeString)
             episodeNumber--

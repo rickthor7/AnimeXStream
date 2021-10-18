@@ -4,6 +4,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:transitionGroup="true"
     app:layoutDescription="@xml/motion_scene">
 
     <TextView
@@ -35,6 +36,7 @@
         app:layout_constraintBottom_toTopOf="@id/shadowLayout"
         android:focusable="true" />
     <androidx.appcompat.widget.AppCompatImageView
+        android:transitionName="@string/favourite_transition"
         android:layout_width="38dp"
         android:layout_height="38dp"
         android:id="@+id/favorite"
@@ -55,7 +57,7 @@
         android:orientation="vertical"
         android:background="@color/app_background"
         android:layout_height="50dp"
-        android:elevation="1dp"
+        android:elevation="0dp"
         android:layout_marginTop="300dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

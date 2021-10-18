@@ -23,7 +23,7 @@ object CustomAnimation {
         )
         animation.fillAfter = true
         animation.duration = 200
-        player.videoSurfaceView.startAnimation(animation)
+        player.videoSurfaceView?.startAnimation(animation)
     }
 
     fun zoomOutByScale(scaleBy: Float, player: PlayerView) {
@@ -35,7 +35,7 @@ object CustomAnimation {
             0.5f
         )
         animation.duration = 200
-        player.videoSurfaceView.startAnimation(animation)
+        player.videoSurfaceView?.startAnimation(animation)
     }
 
     fun rotateForward(view: View) {

@@ -36,13 +36,13 @@ class AnimeInfoRepository {
     }
 
     fun addToFavourite(favouriteModel: FavouriteModel) {
-        realm.executeTransaction {
+        realm.executeTransactionAsync {
             it.insertOrUpdate(favouriteModel)
         }
     }
 
     fun removeFromFavourite(id: String) {
-        realm.executeTransaction {
+        realm.executeTransactionAsync {
             it.where(FavouriteModel::class.java).equalTo("ID", id).findAll().deleteAllFromRealm()
         }
 

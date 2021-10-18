@@ -39,7 +39,7 @@ object TouchUtils {
     }
 
     fun calculateScale(player: PlayerView): Float {
-        val scaleBy = player.width.toFloat() / player.videoSurfaceView.width.toFloat()
+        val scaleBy = player.width.toFloat() / player.videoSurfaceView?.width!!.toFloat()
         Timber.e("Scale By $scaleBy")
         return if (scaleBy > 1) scaleBy else 1f
     }

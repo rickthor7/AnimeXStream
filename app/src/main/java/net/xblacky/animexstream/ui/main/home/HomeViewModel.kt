@@ -40,18 +40,12 @@ class HomeViewModel @Inject constructor(
     }
 
     fun fetchHomeList() {
-        viewModelScope.launch {
-
-            listOf(
-                async { fetchPopular() },
-                async { fetchRecentSub() },
-                async { fetchRecentDub() },
-                async { fetchMovies() },
-                async { fetchNewSeason() }
-
-            )
-
-
+        viewModelScope.async {
+            fetchPopular()
+            fetchNewSeason()
+            fetchMovies()
+            fetchRecentDub()
+            fetchRecentSub()
         }
     }
 

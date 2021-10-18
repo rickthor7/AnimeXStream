@@ -13,13 +13,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.annotation.ExperimentalCoilApi
+import com.google.android.material.transition.MaterialElevationScale
+import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_home.view.*
 import net.xblacky.animexstream.BuildConfig
@@ -46,19 +50,20 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
         savedInstanceState: Bundle?
     ): View {
         rootView = inflater.inflate(R.layout.fragment_home, container, false)
-        setAdapter()
-        setClickListeners()
         return rootView
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupTransitions(view)
+
+        setAdapter()
+        setClickListeners()
         viewModelObserver()
     }
 
     private fun setAdapter() {
         homeController = HomeController(this)
-
         homeController.isDebugLoggingEnabled = true
         val homeRecyclerView = rootView.recyclerView
         homeRecyclerView.layoutManager = LinearLayoutManager(context)
@@ -76,6 +81,17 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
                 showDialog(it.whatsNew)
             }
         })
+    }
+
+    private fun setupTransitions(view: View) {
+        postponeEnterTransition()
+        view.doOnPreDraw { startPostponedEnterTransition() }
+        exitTransition = MaterialFadeThrough().apply {
+            duration = 300
+        }
+        reenterTransition = MaterialFadeThrough().apply {
+            duration = 300
+        }
     }
 
     private fun setClickListeners() {
@@ -99,7 +115,14 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
                 findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSearchFragment())
             }
             R.id.favorite -> {
-                findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToFavouriteFragment())
+                val extras = FragmentNavigatorExtras(
+                    rootView.favorite to resources.getString(R.string.favourite_transition)
+
+                )
+                findNavController().navigate(
+                    HomeFragmentDirections.actionHomeFragmentToFavouriteFragment(),
+                    extras
+                )
             }
         }
     }
@@ -114,12 +137,20 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
         )
     }
 
-    override fun animeTitleClick(model: AnimeMetaModel) {
-        if(!model.categoryUrl.isNullOrBlank()){
+    override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {
+        if (!model.categoryUrl.isNullOrBlank()) {
+
+            val extras = FragmentNavigatorExtras(
+                sharedTitle to resources.getString(R.string.shared_anime_title),
+                sharedImage to resources.getString(R.string.shared_anime_image)
+            )
             findNavController().navigate(
                 HomeFragmentDirections.actionHomeFragmentToAnimeInfoFragment(
-                    categoryUrl = model.categoryUrl
-                )
+                    categoryUrl = model.categoryUrl,
+                    animeImageUrl = model.imageUrl,
+                    animeName = model.title
+                ),
+                extras
             )
         }
 
