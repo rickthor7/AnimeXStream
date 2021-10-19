@@ -7,12 +7,14 @@ import android.os.Bundle
 import android.view.View
 import android.view.Window
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.transition.platform.MaterialContainerTransformSharedElementCallback
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import dagger.hilt.android.AndroidEntryPoint
+import net.xblacky.animexstream.ui.main.home.components.HomeScreen
 import net.xblacky.animexstream.utils.preference.PreferenceHelper
 import timber.log.Timber
 
@@ -21,16 +23,21 @@ import timber.log.Timber
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setupTransitions()
+//        setupTransitions()
+//        super.onCreate(savedInstanceState)
+//        if (Build.VERSION.SDK_INT < VERSION_CODES.Q) {
+//            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY)
+//        } else {
+//            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+//        }
+//        updateRemoteConfig()
+//        toggleDayNight()
+//        setContentView(R.layout.main_activity)
+
         super.onCreate(savedInstanceState)
-        if (Build.VERSION.SDK_INT < VERSION_CODES.Q) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY)
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        setContent {
+            HomeScreen()
         }
-        updateRemoteConfig()
-        toggleDayNight()
-        setContentView(R.layout.main_activity)
     }
 
     private fun setupTransitions(){

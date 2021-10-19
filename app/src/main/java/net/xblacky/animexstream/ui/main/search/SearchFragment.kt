@@ -16,8 +16,6 @@ import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.FragmentNavigatorExtras
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
@@ -162,7 +160,7 @@ class SearchFragment : Fragment(), View.OnClickListener,
         when (v?.id) {
             R.id.backButton -> {
                 hideKeyBoard()
-                findNavController().popBackStack()
+//                findNavController().popBackStack()
 
             }
         }
@@ -207,18 +205,18 @@ class SearchFragment : Fragment(), View.OnClickListener,
     }
 
     override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {
-        val extras = FragmentNavigatorExtras(
-            sharedTitle to resources.getString(R.string.shared_anime_title),
-            sharedImage to resources.getString(R.string.shared_anime_image)
-        )
-        findNavController().navigate(
-            SearchFragmentDirections.actionSearchFragmentToAnimeInfoFragment(
-                categoryUrl = model.categoryUrl,
-                animeImageUrl = model.imageUrl,
-                animeName = model.title
-            ),
-            extras
-        )
+//        val extras = FragmentNavigatorExtras(
+//            sharedTitle to resources.getString(R.string.shared_anime_title),
+//            sharedImage to resources.getString(R.string.shared_anime_image)
+//        )
+//        findNavController().navigate(
+//            SearchFragmentDirections.actionSearchFragmentToAnimeInfoFragment(
+//                categoryUrl = model.categoryUrl,
+//                animeImageUrl = model.imageUrl,
+//                animeName = model.title
+//            ),
+//            extras
+//        )
     }
 
     private fun setupTransitions(view: View) {

@@ -3,19 +3,15 @@ package net.xblacky.animexstream.ui.main.favourites
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
-import android.transition.Fade
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialContainerTransform
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_favourite.view.*
 import kotlinx.android.synthetic.main.fragment_favourite.view.toolbarText
 import kotlinx.android.synthetic.main.fragment_favourite.view.topView
@@ -151,19 +147,19 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
     }
 
     override fun animeTitleClick(model: FavouriteModel) {
-        findNavController().navigate(
-            FavouriteFragmentDirections.actionFavouriteFragmentToAnimeInfoFragment(
-                categoryUrl = model.categoryUrl,
-                animeName = model.animeName!!,
-                animeImageUrl = model.imageUrl!!
-            )
-        )
+//        findNavController().navigate(
+//            FavouriteFragmentDirections.actionFavouriteFragmentToAnimeInfoFragment(
+//                categoryUrl = model.categoryUrl,
+//                animeName = model.animeName!!,
+//                animeImageUrl = model.imageUrl!!
+//            )
+//        )
     }
 
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.back -> {
-                findNavController().popBackStack()
+//                findNavController().popBackStack()
             }
         }
     }

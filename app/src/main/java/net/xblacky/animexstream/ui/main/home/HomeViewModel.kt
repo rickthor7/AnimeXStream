@@ -1,5 +1,6 @@
 package net.xblacky.animexstream.ui.main.home
 
+import androidx.compose.runtime.*
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.database.DatabaseReference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import net.xblacky.animexstream.ui.main.home.di.HomeRepositoryModule
 import net.xblacky.animexstream.ui.main.home.source.HomeRepository
 import net.xblacky.animexstream.utils.Result
@@ -25,9 +26,10 @@ class HomeViewModel @Inject constructor(
     @DispatcherModule.MainDispatcher val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
-    private var _animeList: MutableLiveData<ArrayList<HomeScreenModel>> =
-        MutableLiveData(makeEmptyArrayList())
-    var animeList: LiveData<ArrayList<HomeScreenModel>> = _animeList
+    private var _animeList: MutableState<MutableList<HomeScreenModel>> =
+        mutableStateOf(makeEmptyArrayList())
+
+    var animeList: State<List<HomeScreenModel>> = _animeList
 
 
     private var _updateModel: MutableLiveData<UpdateModel> = MutableLiveData()
@@ -40,12 +42,15 @@ class HomeViewModel @Inject constructor(
     }
 
     fun fetchHomeList() {
-        viewModelScope.async {
-            fetchPopular()
-            fetchNewSeason()
-            fetchMovies()
-            fetchRecentDub()
-            fetchRecentSub()
+
+        viewModelScope.launch {
+            val deferred = listOf(async { fetchRecentSub() },
+                async { fetchRecentDub() },
+                async { fetchNewSeason() },
+                async { fetchMovies() },
+                async { fetchPopular() }
+            )
+            deferred.awaitAll()
         }
     }
 
@@ -78,13 +83,13 @@ class HomeViewModel @Inject constructor(
                 type = Utils.getTypeName(typeValue),
                 animeList = result.data
             )
-            val newList = animeList.value
+            val newList = _animeList.value.toMutableList()
             try {
-                newList?.set(getPositionByType(typeValue), homeScreenModel)
+                newList[getPositionByType(typeValue)] = homeScreenModel
 
             } catch (iobe: IndexOutOfBoundsException) {
             }
-            _animeList.postValue(newList)
+            _animeList.value = newList
         }
     }
 
@@ -106,7 +111,9 @@ class HomeViewModel @Inject constructor(
         while (i <= 6) {
             arrayList.add(
                 HomeScreenModel(
-                    typeValue = i
+                    typeValue = i,
+                    type = "",
+                    animeList = ArrayList()
                 )
             )
             i++

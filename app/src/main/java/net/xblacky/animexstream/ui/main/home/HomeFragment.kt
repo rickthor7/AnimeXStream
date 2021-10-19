@@ -8,27 +8,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.FragmentNavigatorExtras
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.annotation.ExperimentalCoilApi
-import com.google.android.material.transition.MaterialElevationScale
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_home.view.*
 import net.xblacky.animexstream.BuildConfig
 import net.xblacky.animexstream.R
-import net.xblacky.animexstream.ui.main.home.components.HomeScreen
 import net.xblacky.animexstream.ui.main.home.epoxy.HomeController
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
@@ -71,9 +60,9 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
     }
 
     private fun viewModelObserver() {
-        viewModel.animeList.observe(viewLifecycleOwner, {
-            homeController.setData(it)
-        })
+//        viewModel.animeList.observe(viewLifecycleOwner, {
+//            homeController.setData(it)
+//        })
 
         viewModel.updateModel.observe(viewLifecycleOwner, {
             Timber.e(it.whatsNew)
@@ -101,58 +90,58 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
     }
 
     override fun onClick(v: View?) {
-        when (v?.id) {
-            R.id.header -> {
-                doubleClickLastTime = if (System.currentTimeMillis() - doubleClickLastTime < 300) {
-                    rootView.recyclerView.smoothScrollToPosition(0)
-                    0L
-                } else {
-                    System.currentTimeMillis()
-                }
-
-            }
-            R.id.search -> {
-                findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSearchFragment())
-            }
-            R.id.favorite -> {
-                val extras = FragmentNavigatorExtras(
-                    rootView.favorite to resources.getString(R.string.favourite_transition)
-
-                )
-                findNavController().navigate(
-                    HomeFragmentDirections.actionHomeFragmentToFavouriteFragment(),
-                    extras
-                )
-            }
-        }
+//        when (v?.id) {
+//            R.id.header -> {
+//                doubleClickLastTime = if (System.currentTimeMillis() - doubleClickLastTime < 300) {
+//                    rootView.recyclerView.smoothScrollToPosition(0)
+//                    0L
+//                } else {
+//                    System.currentTimeMillis()
+//                }
+//
+//            }
+//            R.id.search -> {
+//                findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSearchFragment())
+//            }
+//            R.id.favorite -> {
+//                val extras = FragmentNavigatorExtras(
+//                    rootView.favorite to resources.getString(R.string.favourite_transition)
+//
+//                )
+//                findNavController().navigate(
+//                    HomeFragmentDirections.actionHomeFragmentToFavouriteFragment(),
+//                    extras
+//                )
+//            }
+//        }
     }
 
     override fun recentSubDubEpisodeClick(model: AnimeMetaModel) {
-        findNavController().navigate(
-            HomeFragmentDirections.actionHomeFragmentToVideoPlayerActivity(
-                episodeUrl = model.episodeUrl,
-                animeName = model.title,
-                episodeNumber = model.episodeNumber
-            )
-        )
+//        findNavController().navigate(
+//            HomeFragmentDirections.actionHomeFragmentToVideoPlayerActivity(
+//                episodeUrl = model.episodeUrl,
+//                animeName = model.title,
+//                episodeNumber = model.episodeNumber
+//            )
+//        )
     }
 
     override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {
-        if (!model.categoryUrl.isNullOrBlank()) {
-
-            val extras = FragmentNavigatorExtras(
-                sharedTitle to resources.getString(R.string.shared_anime_title),
-                sharedImage to resources.getString(R.string.shared_anime_image)
-            )
-            findNavController().navigate(
-                HomeFragmentDirections.actionHomeFragmentToAnimeInfoFragment(
-                    categoryUrl = model.categoryUrl,
-                    animeImageUrl = model.imageUrl,
-                    animeName = model.title
-                ),
-                extras
-            )
-        }
+//        if (!model.categoryUrl.isNullOrBlank()) {
+//
+//            val extras = FragmentNavigatorExtras(
+//                sharedTitle to resources.getString(R.string.shared_anime_title),
+//                sharedImage to resources.getString(R.string.shared_anime_image)
+//            )
+//            findNavController().navigate(
+//                HomeFragmentDirections.actionHomeFragmentToAnimeInfoFragment(
+//                    categoryUrl = model.categoryUrl,
+//                    animeImageUrl = model.imageUrl,
+//                    animeName = model.title
+//                ),
+//                extras
+//            )
+//        }
 
     }
 

@@ -1,16 +1,17 @@
 package net.xblacky.animexstream.ui.main.home.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.AbsoluteCutCornerShape
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,9 +25,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import net.xblacky.animexstream.R
+import net.xblacky.animexstream.ui.main.home.HomeViewModel
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
@@ -44,7 +47,7 @@ fun AnimeHomeElement(
             modifier = Modifier
                 .width(105.dp)
                 .height(180.dp)
-                .clip(CutCornerShape(0.dp,24.dp)),
+                .clip(RoundedCornerShape(4.dp)),
             imageUrl = animeData.imageUrl,
             isEpisode = !animeData.episodeUrl.isNullOrEmpty()
         )
@@ -59,27 +62,44 @@ fun AnimeHomeElement(
 }
 
 
+@ExperimentalAnimationApi
 @ExperimentalCoilApi
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, list: ArrayList<HomeScreenModel>) {
+fun HomeScreen(modifier: Modifier = Modifier) {
+
+    val viewModel = hiltViewModel<HomeViewModel>()
+    val list by viewModel.animeList
+
     LazyColumn(modifier = modifier) {
-
         items(list) { homeData: HomeScreenModel ->
-            if (!homeData.animeList.isNullOrEmpty()) {
-                AnimeMiniHeader(animeType = homeData.typeValue)
+            val visible by mutableStateOf(!homeData.animeList.isNullOrEmpty())
+            if (visible) {
 
-                homeData.animeList?.let { animeList ->
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
-                    ) {
-                        items(animeList) { animeData: AnimeMetaModel ->
-                            AnimeHomeElement(animeData = animeData)
+                AnimatedVisibility(visible = visible) {
+                    AnimeMiniHeader(animeType = homeData.typeValue)
+                }
+
+
+                homeData.animeList.let { animeList ->
+
+                    AnimatedVisibility(enter = slideInVertically() , visible = visible,) {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp),
+                        ) {
+                            items(animeList) { animeData: AnimeMetaModel ->
+                                AnimeHomeElement(animeData = animeData)
+
+
+                            }
                         }
                     }
+
                 }
+
             }
         }
+
     }
 
 }
@@ -107,26 +127,26 @@ fun AnimeHomeImage(modifier: Modifier, imageUrl: String, isEpisode: Boolean) {
         modifier = modifier
     ) {
         Image(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier,
             painter = rememberImagePainter(imageUrl),
             contentDescription = "Anime Image",
             alignment = Alignment.Center,
             contentScale = ContentScale.Crop
         )
 
-        if (isEpisode) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color(0xCC000000)
-                            )
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0xCC000000)
                         )
                     )
-            )
+                )
+        )
+        if (isEpisode) {
             Column(
                 Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,

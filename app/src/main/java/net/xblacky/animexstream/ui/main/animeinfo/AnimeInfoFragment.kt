@@ -9,7 +9,6 @@ import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.transition.TransitionInflater
 import com.bumptech.glide.Glide
@@ -46,24 +45,24 @@ class AnimeInfoFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setPreviews()
-        viewModelFactory =
-            AnimeInfoViewModelFactory(AnimeInfoFragmentArgs.fromBundle(requireArguments()).categoryUrl!!)
-        viewModel = ViewModelProvider(this, viewModelFactory).get(AnimeInfoViewModel::class.java)
-        setupRecyclerView()
-        setObserver()
-        transitionListener()
-        setOnClickListeners()
+//        super.onViewCreated(view, savedInstanceState)
+//        setPreviews()
+//        viewModelFactory =
+//            AnimeInfoViewModelFactory(AnimeInfoFragmentArgs.fromBundle(requireArguments()).categoryUrl!!)
+//        viewModel = ViewModelProvider(this, viewModelFactory).get(AnimeInfoViewModel::class.java)
+//        setupRecyclerView()
+//        setObserver()
+//        transitionListener()
+//        setOnClickListeners()
     }
 
     private fun setPreviews() {
-        val imageUrl = AnimeInfoFragmentArgs.fromBundle(requireArguments()).animeImageUrl
-        val animeTitle = AnimeInfoFragmentArgs.fromBundle(requireArguments()).animeName
-        animeInfoTitle.text = animeTitle
-        rootView.animeInfoImage.apply {
-            Glide.with(this).load(imageUrl).into(this)
-        }
+//        val imageUrl = AnimeInfoFragmentArgs.fromBundle(requireArguments()).animeImageUrl
+//        val animeTitle = AnimeInfoFragmentArgs.fromBundle(requireArguments()).animeName
+//        animeInfoTitle.text = animeTitle
+//        rootView.animeInfoImage.apply {
+//            Glide.with(this).load(imageUrl).into(this)
+//        }
 
 
     }
@@ -211,7 +210,7 @@ class AnimeInfoFragment : Fragment() {
         }
 
         rootView.back.setOnClickListener {
-            findNavController().popBackStack()
+//            findNavController().popBackStack()
         }
     }
 
