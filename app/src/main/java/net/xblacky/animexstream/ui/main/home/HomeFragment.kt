@@ -112,7 +112,12 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
 
             }
             R.id.search -> {
-                findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSearchFragment())
+                val extras =
+                    FragmentNavigatorExtras(rootView.search to resources.getString(R.string.search_transition))
+                findNavController().navigate(
+                    HomeFragmentDirections.actionHomeFragmentToSearchFragment(),
+                    extras
+                )
             }
             R.id.favorite -> {
                 val extras = FragmentNavigatorExtras(

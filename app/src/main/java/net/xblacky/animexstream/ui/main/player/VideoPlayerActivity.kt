@@ -32,8 +32,8 @@ import java.lang.Exception
 import android.view.WindowInsetsController
 
 import android.view.WindowInsets
-
-
+import androidx.transition.Explode
+import androidx.transition.Slide
 
 
 class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
@@ -43,32 +43,15 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     private var animeName: String? = ""
     private lateinit var content: Content
     override fun onCreate(savedInstanceState: Bundle?) {
-        window.requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
-        setupTransitions()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_player)
 
         viewModel = ViewModelProvider(this).get(VideoPlayerViewModel::class.java)
         getExtra(intent)
-//        (playerFragment as VideoPlayerFragment).updateContent(Content(
-//            url = url,
-//            episodeNumber = "153"
-//        ))
         setObserver()
         goFullScreen()
     }
 
-    private fun setupTransitions() {
-        setEnterSharedElementCallback(MaterialContainerTransformSharedElementCallback())
-        window.enterTransition = MaterialContainerTransform().apply {
-            addTarget(R.id.playerActivityContainer)
-            scrimColor = Color.TRANSPARENT
-            fadeMode =  MaterialContainerTransform.FADE_MODE_THROUGH
-            startContainerColor = ContextCompat.getColor(applicationContext, android.R.color.transparent)
-            endContainerColor = ContextCompat.getColor(applicationContext, android.R.color.transparent)
-            duration = 300L
-        }
-    }
 
     override fun onNewIntent(intent: Intent?) {
         (playerFragment as VideoPlayerFragment).playOrPausePlayer(
@@ -149,6 +132,8 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
             finishAndRemoveTask()
         }
         super.finish()
+
+        overridePendingTransition(android.R.anim.fade_in, R.anim.slide_in_down)
     }
 
     fun enterPipModeOrExit() {
@@ -242,7 +227,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                 controller.systemBarsBehavior =
                     WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
-        }else{
+        } else {
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_FULLSCREEN)

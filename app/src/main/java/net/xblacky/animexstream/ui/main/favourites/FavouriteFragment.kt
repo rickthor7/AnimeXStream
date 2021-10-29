@@ -9,12 +9,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialContainerTransform
+import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_favourite.view.*
 import kotlinx.android.synthetic.main.fragment_favourite.view.toolbarText
@@ -40,9 +43,7 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
         savedInstanceState: Bundle?
     ): View {
         rootView = inflater.inflate(R.layout.fragment_favourite, container, false)
-        setAdapters()
-        transitionListener()
-        setClickListeners()
+
         return rootView
     }
 
@@ -50,17 +51,34 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this).get(FavouriteViewModel::class.java)
+        setTransitions(view = view)
+        setAdapters()
+        transitionListener()
+        setClickListeners()
         setObserver()
 
+
+    }
+
+    private fun setTransitions(view: View) {
+        postponeEnterTransition()
+        view.doOnPreDraw { startPostponedEnterTransition() }
+//        exitTransition = MaterialFadeThrough().apply {
+//            duration = 300
+//        }
+//        reenterTransition = MaterialFadeThrough().apply {
+//            duration = 300
+//        }
         sharedElementEnterTransition = MaterialContainerTransform().apply {
             drawingViewId = R.id.navHostFragmentContainer
             duration = 300
             scrimColor = Color.TRANSPARENT
-            fadeMode =  MaterialContainerTransform.FADE_MODE_THROUGH
-            startContainerColor = ContextCompat.getColor(view.context, android.R.color.transparent)
-            endContainerColor = ContextCompat.getColor(view.context, android.R.color.transparent)
+            fadeMode = MaterialContainerTransform.FADE_MODE_THROUGH
+            startContainerColor =
+                ContextCompat.getColor(view.context, android.R.color.transparent)
+            endContainerColor =
+                ContextCompat.getColor(view.context, android.R.color.transparent)
         }
-
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -150,20 +168,25 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
         rootView.back.setOnClickListener(this)
     }
 
-    override fun animeTitleClick(model: FavouriteModel) {
+
+    override fun animeTitleClick(model: FavouriteModel, sharedTitle: View, sharedImage: View) {
+        val extras = FragmentNavigatorExtras(
+            sharedTitle to resources.getString(R.string.shared_anime_title),
+            sharedImage to resources.getString(R.string.shared_anime_image)
+        )
         findNavController().navigate(
             FavouriteFragmentDirections.actionFavouriteFragmentToAnimeInfoFragment(
                 categoryUrl = model.categoryUrl,
                 animeName = model.animeName!!,
                 animeImageUrl = model.imageUrl!!
-            )
+            ), extras
         )
     }
 
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.back -> {
-                findNavController().popBackStack()
+                findNavController().navigateUp()
             }
         }
     }

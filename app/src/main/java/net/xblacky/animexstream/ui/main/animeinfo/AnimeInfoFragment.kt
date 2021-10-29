@@ -22,12 +22,14 @@ import kotlinx.android.synthetic.main.fragment_animeinfo.view.animeInfoRoot
 import kotlinx.android.synthetic.main.loading.view.*
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.ui.main.animeinfo.epoxy.AnimeInfoController
+import net.xblacky.animexstream.ui.main.home.HomeFragmentDirections
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
 import net.xblacky.animexstream.utils.Tags.GenreTags
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.model.AnimeInfoModel
+import net.xblacky.animexstream.utils.model.EpisodeModel
 
-class AnimeInfoFragment : Fragment() {
+class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
 
     private lateinit var rootView: View
     private lateinit var viewModelFactory: AnimeInfoViewModelFactory
@@ -154,7 +156,7 @@ class AnimeInfoFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        episodeController = AnimeInfoController()
+        episodeController = AnimeInfoController(this)
         episodeController.spanCount = Utils.calculateNoOfColumns(requireContext(), 150f)
         rootView.animeInfoRecyclerView.adapter = episodeController.adapter
         val itemOffsetDecoration = ItemOffsetDecoration(context, R.dimen.episode_offset_left)
@@ -211,7 +213,7 @@ class AnimeInfoFragment : Fragment() {
         }
 
         rootView.back.setOnClickListener {
-            findNavController().popBackStack()
+            findNavController().navigateUp()
         }
     }
 
@@ -234,6 +236,16 @@ class AnimeInfoFragment : Fragment() {
         if (episodeController.isWatchedHelperUpdated()) {
             episodeController.setData(viewModel.episodeList.value)
         }
+    }
+
+    override fun onEpisodeClick(episodeModel: EpisodeModel) {
+        findNavController().navigate(
+            AnimeInfoFragmentDirections.actionAnimeInfoFragmentToVideoPlayerActivity(
+                episodeUrl = episodeModel.episodeurl,
+                animeName = AnimeInfoFragmentArgs.fromBundle(requireArguments()).animeName,
+                episodeNumber = episodeModel.episodeNumber
+            )
+        )
     }
 
 }

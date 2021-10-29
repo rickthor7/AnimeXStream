@@ -26,14 +26,6 @@
             android:background="?selectableItemBackgroundBorderless"
             android:scaleType="centerCrop" />
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/backgroundImage"
-            android:src="@color/transparent_background"
-            android:foreground="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:layout_width="30dp"

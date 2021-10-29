@@ -40,9 +40,6 @@ abstract class EpisodeModel : EpoxyModelWithHolder<EpisodeModel.HomeHeaderHolder
             )
         )
 
-        var transitionName = holder.cardView.context.getString(R.string.episode_transition)
-        transitionName = "${transitionName}_${episodeModel.episodeNumber}"
-        holder.cardView.transitionName = transitionName
 
     }
 

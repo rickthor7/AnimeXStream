@@ -113,7 +113,7 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
         sharedImage: View
     ) {
         when (clickedView.id) {
-            R.id.backgroundImage -> {
+            R.id.animeImage -> {
                 adapterCallbacks.recentSubDubEpisodeClick(model = model)
             }
             R.id.animeTitle -> {

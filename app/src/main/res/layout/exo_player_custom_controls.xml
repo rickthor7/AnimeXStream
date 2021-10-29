@@ -5,14 +5,16 @@
     android:layout_height="match_parent"
     android:background="@color/media_player_controls_background">
 
-    <ImageView
+    <ImageButton
         android:id="@+id/back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="8dp"
         android:background="?selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
         android:src="@drawable/ic_arrow"
+        app:layout_constraintBottom_toBottomOf="@id/episodeName"
         app:layout_constraintStart_toStartOf="@id/startGuideLine"
         app:layout_constraintTop_toTopOf="@id/topGuideLine" />
 

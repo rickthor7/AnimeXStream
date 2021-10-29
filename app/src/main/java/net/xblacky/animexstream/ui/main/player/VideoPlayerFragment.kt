@@ -225,6 +225,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
     private fun loadVideo(seekTo: Long? = 0, playWhenReady: Boolean = true) {
+        player.playWhenReady = playWhenReady
         showLoading(true)
         showErrorLayout(false, 0, 0)
         val mediaSource = buildMediaSource(Uri.parse(videoUrl))
@@ -232,7 +233,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             player.seekTo(it)
         }
         player.setMediaSource(mediaSource)
-        player.playWhenReady = playWhenReady
+        player.prepare()
+
     }
 
     override fun onClick(v: View?) {
@@ -392,20 +394,13 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         mappedTrackInfo = trackSelector.currentMappedTrackInfo
 
         try {
-//            TrackSelectionDialogBuilder(
-//                requireContext(),
-//                getString(R.string.video_quality),
-//                trackSelector,
-//                0,
-//
-//                ).build().show()
+            TrackSelectionDialogBuilder(
+                requireContext(),
+                getString(R.string.video_quality),
+                trackSelector,
+                0,
+                ).build().show()
 
-            CustomTrackSelection(
-                context = requireContext(),
-                title = "Video Quality",
-                trackSelector = trackSelector,
-                0
-            ).showQuality()
         } catch (ignored: java.lang.NullPointerException) {
         }
     }
