@@ -48,8 +48,8 @@ android {
         applicationId "net.xblacky.animexstream"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 9
-        versionName "0.2.5"
+        versionCode 11
+        versionName "0.3.1beta"
         vectorDrawables.useSupportLibrary = true
         archivesBaseName = "AnimexStream-v$versionName"
         testInstrumentationRunner "net.xblacky.animexstream.AXSTestRunner"

@@ -130,7 +130,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             .build()
 
         player.playWhenReady = true
-        player.setAudioAttributes(audioAttributes, true)
+        player.setAudioAttributes(audioAttributes, false)
         player.addListener(this)
         player.setSeekParameters(SeekParameters.CLOSEST_SYNC)
         rootView.exoPlayerView.player = player
