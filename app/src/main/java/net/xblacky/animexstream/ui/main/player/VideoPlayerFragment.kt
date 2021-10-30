@@ -229,11 +229,13 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         showLoading(true)
         showErrorLayout(false, 0, 0)
         val mediaSource = buildMediaSource(Uri.parse(videoUrl))
-        seekTo?.let {
-            player.seekTo(it)
-        }
         player.setMediaSource(mediaSource)
         player.prepare()
+        seekTo?.let {
+            Timber.e(it.toString())
+            player.seekTo(it)
+        }
+
 
     }
 
