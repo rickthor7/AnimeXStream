@@ -1,10 +1,13 @@
 package net.xblacky.animexstream.ui.main.home
 
+import android.app.DownloadManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -17,6 +20,7 @@ import net.xblacky.animexstream.utils.di.DispatcherModule
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.model.HomeScreenModel
 import net.xblacky.animexstream.utils.model.UpdateModel
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,6 +40,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         fetchHomeList()
+        queryDB()
 
     }
 
@@ -50,25 +55,24 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    //TODO Move this code to Main Activity Repo
-//    private fun queryDB() {
-//        database = Firebase.database.reference
-//        val query: Query = database.child("appdata")
-//        query.addListenerForSingleValueEvent(object : ValueEventListener {
-//            override fun onCancelled(ignored: DatabaseError) {
-//                Timber.e(ignored.message)
-//            }
-//
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                Timber.e(snapshot.toString())
-//                _updateModel.value = UpdateModel(
-//                    versionCode = snapshot.child("versionCode").value as Long,
-//                    whatsNew = snapshot.child("whatsNew").value.toString()
-//                )
-//            }
-//
-//        })
-//    }
+    private fun queryDB() {
+        database = Firebase.database.reference
+        val query: Query = database.child("appdata")
+        query.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onCancelled(ignored: DatabaseError) {
+                Timber.e(ignored.message)
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                Timber.e(snapshot.toString())
+                _updateModel.value = UpdateModel(
+                    versionCode = snapshot.child("versionCode").value as Long,
+                    whatsNew = snapshot.child("whatsNew").value.toString()
+                )
+            }
+
+        })
+    }
 
 
     private fun updateData(result: Result<ArrayList<AnimeMetaModel>>, typeValue: Int) {

@@ -48,10 +48,15 @@ class HomeRemoteRepository
 
     private suspend fun callServiceBasedOnType(page: Int, type: Int): ResponseBody {
         return when (type) {
-            C.TYPE_RECENT_SUB, C.TYPE_RECENT_DUB -> homeNetworkService.fetchRecentSubOrDub(
+            C.TYPE_RECENT_SUB -> homeNetworkService.fetchRecentSubOrDub(
                 header,
                 page,
-                type
+                C.RECENT_SUB
+            )
+            C.TYPE_RECENT_DUB -> homeNetworkService.fetchRecentSubOrDub(
+                header,
+                page,
+                C.RECENT_DUB
             )
             C.TYPE_MOVIE -> homeNetworkService.fetchMovies(header, page)
             C.TYPE_NEW_SEASON -> homeNetworkService.fetchNewestSeason(header, page)

@@ -2,10 +2,8 @@ package net.xblacky.animexstream.ui.main.search
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableObserver
-import net.xblacky.animexstream.utils.CommonViewModel
 import net.xblacky.animexstream.utils.CommonViewModel2
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
@@ -66,19 +64,24 @@ class SearchViewModel : CommonViewModel2() {
             }
 
             override fun onNext(response: ResponseBody) {
-                val list =
-                    HtmlParser.parseMovie(response = response.string(), typeValue = C.TYPE_DEFAULT)
-                if (list.isNullOrEmpty() || list.size < 20) {
-                    _canNextPageLoaded = false
+                try{
+                    val list =
+                        HtmlParser.parseMovie(response = response.string(), typeValue = C.TYPE_DEFAULT)
+                    if (list.isNullOrEmpty() || list.size < 20) {
+                        _canNextPageLoaded = false
+                    }
+                    if (searchType == C.TYPE_SEARCH_NEW) {
+                        _searchList.value = list
+                    } else if (searchType == C.TYPE_SEARCH_UPDATE) {
+                        val updatedList = _searchList.value
+                        updatedList?.addAll(list)
+                        _searchList.value = updatedList
+                    }
+                    pageNumber++
+                }catch (exc: HtmlParser.ParserListFetchException){
+                    updateLoadingState(loading = Loading.ERROR, e = exc, isListEmpty = isListEmpty())
                 }
-                if (searchType == C.TYPE_SEARCH_NEW) {
-                    _searchList.value = list
-                } else if (searchType == C.TYPE_SEARCH_UPDATE) {
-                    val updatedList = _searchList.value
-                    updatedList?.addAll(list)
-                    _searchList.value = updatedList
-                }
-                pageNumber++
+
             }
 
             override fun onError(e: Throwable) {
