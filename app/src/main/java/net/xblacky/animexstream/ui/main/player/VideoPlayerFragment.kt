@@ -16,15 +16,15 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.source.hls.HlsDataSourceFactory
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.*
 import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder
 import com.google.android.exoplayer2.upstream.*
 import com.google.android.exoplayer2.upstream.HttpDataSource.InvalidResponseCodeException
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.error_screen_video_player.view.*
 import kotlinx.android.synthetic.main.exo_player_custom_controls.*
 import kotlinx.android.synthetic.main.exo_player_custom_controls.view.*
@@ -35,22 +35,21 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.xblacky.animexstream.R
+import net.xblacky.animexstream.ui.main.player.utils.CustomOnScaleGestureListener
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.animation.CustomAnimation
 import net.xblacky.animexstream.utils.constants.C.Companion.ERROR_CODE_DEFAULT
 import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTION
 import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
-import net.xblacky.animexstream.utils.exoplayer.CustomTrackSelection
 import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.preference.Preference
 import timber.log.Timber
-import java.io.IOException
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import net.xblacky.animexstream.utils.touchevents.TouchUtils
-import okhttp3.Call
 
 
+@AndroidEntryPoint
 class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     AudioManager.OnAudioFocusChangeListener {
 
@@ -163,27 +162,20 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     private fun buildMediaSource(uri: Uri): MediaSource {
 
-
         val lastPath = uri.lastPathSegment
-
-//        val defaultDataSourceFactory = OkHttpDataSource.Factory(Call.Factory)
-
-        val defaultDataSourceFactory = DefaultHttpDataSource.Factory()
-            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36")
-        val mediaItem = MediaItem.fromUri(uri)
+        val defaultDataSourceFactory = {
+            val dataSource: DataSource.Factory = DefaultHttpDataSource.Factory()
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36")
+                .setDefaultRequestProperties(hashMapOf("Referer" to sharedPreferences.getReferrer()))
+            dataSource.createDataSource()
+        }
         return if (lastPath!!.contains("m3u8")) {
-            HlsMediaSource.Factory(
-                HlsDataSourceFactory {
-                    val dataSource: HttpDataSource =
-                        defaultDataSourceFactory.createDataSource()
-                    dataSource.setRequestProperty("Referer", sharedPreferences.getReferrer())
-                    dataSource
-                })
+            HlsMediaSource.Factory(defaultDataSourceFactory)
                 .setAllowChunklessPreparation(true)
-                .createMediaSource(mediaItem)
+                .createMediaSource(MediaItem.fromUri(uri))
         } else {
-            DefaultMediaSourceFactory(defaultDataSourceFactory)
-                .createMediaSource(mediaItem)
+            ProgressiveMediaSource.Factory(defaultDataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(uri))
         }
 
     }
@@ -401,7 +393,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                 getString(R.string.video_quality),
                 trackSelector,
                 0,
-                ).build().show()
+            ).build().show()
 
         } catch (ignored: java.lang.NullPointerException) {
         }
@@ -498,6 +490,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         if (playbackState == Player.STATE_READY && playWhenReady) {
             rootView.exo_play.setImageResource(R.drawable.ic_media_play)
             rootView.exo_pause.setImageResource(R.drawable.ic_media_pause)
+
             playOrPausePlayer(true)
 
         }

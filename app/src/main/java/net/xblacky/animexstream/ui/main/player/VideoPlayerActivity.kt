@@ -32,13 +32,15 @@ import java.lang.Exception
 import android.view.WindowInsetsController
 
 import android.view.WindowInsets
+import androidx.activity.viewModels
 import androidx.transition.Explode
 import androidx.transition.Slide
 
 
+@AndroidEntryPoint
 class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
-    private lateinit var viewModel: VideoPlayerViewModel
+    private val viewModel: VideoPlayerViewModel by viewModels()
     private var episodeNumber: String? = ""
     private var animeName: String? = ""
     private lateinit var content: Content
@@ -46,7 +48,6 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_player)
 
-        viewModel = ViewModelProvider(this).get(VideoPlayerViewModel::class.java)
         getExtra(intent)
         setObserver()
         goFullScreen()
@@ -93,7 +94,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                 url = ""
             )
         )
-        viewModel.fetchEpisodeMediaUrl()
+        viewModel.fetchEpisodeData()
     }
 
     @Suppress("DEPRECATION")
@@ -194,7 +195,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     }
 
     private fun setObserver() {
-        viewModel.liveContent.observe(this, Observer {
+        viewModel.content.observe(this, Observer {
             this.content = it
             it?.let {
                 if (!it.url.isNullOrEmpty()) {
@@ -249,7 +250,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                 animeName = content.animeName
             )
         )
-        viewModel.fetchEpisodeMediaUrl()
+        viewModel.fetchEpisodeData()
 
     }
 
@@ -263,7 +264,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                 animeName = content.animeName
             )
         )
-        viewModel.fetchEpisodeMediaUrl()
+        viewModel.fetchEpisodeData()
     }
 
     private fun incrimentEpisodeNumber(episodeName: String): String {
@@ -298,8 +299,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     }
 
     fun refreshM3u8Url() {
-
-        viewModel.fetchEpisodeMediaUrl(fetchFromDb = false)
+        viewModel.fetchEpisodeData()
     }
 
 }

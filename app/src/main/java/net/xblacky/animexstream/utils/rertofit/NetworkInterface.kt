@@ -2,16 +2,14 @@ package net.xblacky.animexstream.utils.rertofit
 
 import io.reactivex.Observable
 import net.xblacky.animexstream.utils.constants.C
+import net.xblacky.animexstream.utils.model.M3U8FromAjaxModel
 import okhttp3.ResponseBody
-import retrofit2.http.GET
-import retrofit2.http.HeaderMap
-import retrofit2.http.Query
-import retrofit2.http.Url
+import retrofit2.http.*
 
 class NetworkInterface {
 
 
-    interface HomeDataService{
+    interface HomeDataService {
 
         @GET("https://ajax.gogocdn.net/ajax/page-recent-release.html")
         suspend fun fetchRecentSubOrDub(
@@ -39,26 +37,30 @@ class NetworkInterface {
         ): ResponseBody
     }
 
-    interface FetchEpisodeMediaUrl {
 
+    interface EpisodeDataService {
         @GET
-        fun get(
+        suspend fun fetchEpisodeMediaUrl(
             @HeaderMap header: Map<String, String>,
             @Url url: String
-        ): Observable<ResponseBody>
+        ): ResponseBody
+
+        @GET
+        suspend fun fetchAjaxUrlForM3U8(
+            @HeaderMap header: Map<String, String>,
+            @Url url: String
+        ): ResponseBody
+
+        @GET
+        @Headers("X-Requested-With:XMLHttpRequest")
+        suspend fun fetchM3U8Url(
+            @HeaderMap header: Map<String, String>,
+            @Url url: String
+        ): M3U8FromAjaxModel
 
     }
 
     interface FetchAnimeInfo {
-        @GET
-        fun get(
-            @HeaderMap header: Map<String, String>,
-            @Url url: String
-        ): Observable<ResponseBody>
-    }
-
-    interface FetchM3u8Url {
-
         @GET
         fun get(
             @HeaderMap header: Map<String, String>,

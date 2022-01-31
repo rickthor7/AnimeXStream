@@ -1,4 +1,4 @@
-package net.xblacky.animexstream.ui.main.player
+package net.xblacky.animexstream.ui.main.player.utils
 
 import android.view.ScaleGestureDetector
 import android.view.animation.Animation

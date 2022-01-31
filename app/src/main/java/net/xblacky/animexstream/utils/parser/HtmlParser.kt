@@ -2,13 +2,17 @@ package net.xblacky.animexstream.utils.parser
 
 import io.realm.RealmList
 import net.xblacky.animexstream.ui.main.home.source.InvalidAnimeTypeException
-import net.xblacky.animexstream.utils.Result
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.*
+import net.xblacky.animexstream.utils.parser.DeCipher.decode
+import net.xblacky.animexstream.utils.parser.DeCipher.decryptAES
+import net.xblacky.animexstream.utils.parser.DeCipher.encryptAes
+import org.apache.commons.lang3.RandomStringUtils
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import timber.log.Timber
 import java.lang.NullPointerException
+import java.net.URLDecoder
 import java.util.regex.Pattern
 import kotlin.Exception
 
@@ -210,11 +214,62 @@ class HtmlParser {
                 document.getElementsByClass("anime_video_body_episodes_l")?.select("a")?.first()
                     ?.attr("href")
 
+
             return EpisodeInfo(
                 nextEpisodeUrl = nextEpisodeUrl,
                 previousEpisodeUrl = previousEpisodeUrl,
-                vidcdnUrl = mediaUrl
+                vidCdnUrl = mediaUrl
             )
+        }
+
+        fun parseEncryptAjaxParameters(response: String): String {
+
+            val document = Jsoup.parse(response)
+            //Start with parsing Some Values https://github.com/pystardust/ani-cli/issues/217#issuecomment-1000996059
+
+            // Value6: $('script[data-name=\x27ts\x27]').data('value')
+            val value6 =
+                document.getElementsByAttributeValue("data-name", "ts").attr("data-value")
+
+            //Value5: $("[name='crypto']").attr('content')
+            val value5 = document.getElementsByAttributeValue("name", "crypto").attr("content")
+
+            val value1 = decryptAES(
+                encryptedText = document.getElementsByAttributeValue("data-name", "crypto")
+                    .attr("data-value"),
+                key = decode(value6 + value6),
+                iv = decode(value6)
+            )
+            val value4 = decryptAES(
+                encryptedText = value5,
+                key = decode(value1),
+                iv = decode(value6)
+            )
+            val value3 = decode(value4)
+
+            //Value2: Random numbers (16 chars)
+            val value2 = RandomStringUtils.randomAlphanumeric(16)
+
+            val encrypted = encryptAes(
+                text = value4.removeRange(value4.indexOf("&"), value4.length),
+                key = decode(value1),
+                iv = decode(value2)
+            )
+
+
+            val ajaxParameters =
+                "id=" + encrypted + "&time=" + "00" + value2 + "00" + value3.substring(
+                    value3.indexOf("&")
+                )
+
+            Timber.e(ajaxParameters)
+
+            return ajaxParameters
+
+        }
+
+        fun parseM3U8UrlFromAjax(response: String){
+
         }
 
         fun parseM3U8Url(response: String): String? {
@@ -319,6 +374,7 @@ class HtmlParser {
         }
 
     }
+
 
     class ParserListFetchException(message: String = "Unable to parse Anime List") :
         Exception(message)
