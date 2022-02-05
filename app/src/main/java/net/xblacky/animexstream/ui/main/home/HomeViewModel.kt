@@ -40,8 +40,6 @@ class HomeViewModel @Inject constructor(
 
     init {
         fetchHomeList()
-        queryDB()
-
     }
 
     fun fetchHomeList() {
@@ -55,7 +53,7 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    private fun queryDB() {
+     fun queryDB() {
         database = Firebase.database.reference
         val query: Query = database.child("appdata")
         query.addListenerForSingleValueEvent(object : ValueEventListener {

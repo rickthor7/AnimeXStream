@@ -233,8 +233,14 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         }
 
         if (!content.urls.isNullOrEmpty()) {
-            updateVideoUrl(content.urls[0].url)
-            updateQualityText()
+            try {
+                updateVideoUrl(content.urls[selectedQuality].url)
+                updateQualityText(selectedQuality)
+            } catch (exc: IndexOutOfBoundsException) {
+                updateVideoUrl(content.urls[0].url)
+                updateQualityText()
+            }
+
         } else {
             showErrorLayout(
                 show = true,
