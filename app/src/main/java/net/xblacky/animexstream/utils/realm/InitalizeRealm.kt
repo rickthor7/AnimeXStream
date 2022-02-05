@@ -4,16 +4,17 @@ import android.content.Context
 import io.realm.Realm
 import io.realm.RealmConfiguration
 
-class InitalizeRealm{
-    companion object{
+class InitalizeRealm {
+    companion object {
 
         private lateinit var config: RealmConfiguration
-        fun initializeRealm(context: Context){
+        fun initializeRealm(context: Context) {
             Realm.init(context)
-            config = RealmConfiguration.Builder().name("animexstream.realm").schemaVersion(0).build()
+            config = RealmConfiguration.Builder().name("animexstream.realm").schemaVersion(1)
+                .migration(Migration()).build()
         }
 
-        fun getConfig(): RealmConfiguration{
+        fun getConfig(): RealmConfiguration {
             return config
         }
     }

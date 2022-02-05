@@ -24,4 +24,11 @@ object AppModules {
             "user-agent" to C.USER_AGENT
         )
     }
+
+    annotation class Referer
+
+    @Provides
+    fun provideReferer(preference: Preference): String {
+        return preference.getReferrer()
+    }
 }

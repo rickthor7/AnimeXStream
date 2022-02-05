@@ -12,7 +12,6 @@ import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import timber.log.Timber
 import java.lang.NullPointerException
-import java.net.URLDecoder
 import java.util.regex.Pattern
 import kotlin.Exception
 
@@ -257,20 +256,12 @@ class HtmlParser {
             )
 
 
-            val ajaxParameters =
-                "id=" + encrypted + "&time=" + "00" + value2 + "00" + value3.substring(
-                    value3.indexOf("&")
-                )
-
-            Timber.e(ajaxParameters)
-
-            return ajaxParameters
+            return "id=" + encrypted + "&time=" + "00" + value2 + "00" + value3.substring(
+                value3.indexOf("&")
+            )
 
         }
 
-        fun parseM3U8UrlFromAjax(response: String){
-
-        }
 
         fun parseM3U8Url(response: String): String? {
             var m3u8Url: String? = ""

@@ -16,13 +16,15 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.trackselection.*
 import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder
-import com.google.android.exoplayer2.upstream.*
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.upstream.HttpDataSource.InvalidResponseCodeException
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.error_screen_video_player.view.*
@@ -43,10 +45,10 @@ import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTI
 import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
 import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.preference.Preference
-import timber.log.Timber
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 import net.xblacky.animexstream.utils.touchevents.TouchUtils
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import timber.log.Timber
 
 
 @AndroidEntryPoint
@@ -60,7 +62,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     private lateinit var videoUrl: String
     private lateinit var rootView: View
-    private lateinit var player: SimpleExoPlayer
+    private lateinit var player: ExoPlayer
     private lateinit var trackSelectionFactory: ExoTrackSelection.Factory
     private lateinit var trackSelector: DefaultTrackSelector
     private lateinit var mediaSession: MediaSessionCompat
@@ -118,9 +120,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     private fun initializePlayer() {
         rootView.exoPlayerFrameLayout.setAspectRatio(16f / 9f)
-        trackSelectionFactory = AdaptiveTrackSelection.Factory()
-        trackSelector = DefaultTrackSelector(requireContext(), trackSelectionFactory)
-        player = SimpleExoPlayer.Builder(requireContext()).setTrackSelector(trackSelector).build()
+        player = ExoPlayer.Builder(requireContext()).build()
 
 
         val audioAttributes: AudioAttributes = AudioAttributes.Builder()
@@ -160,28 +160,59 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         rootView.previousEpisode.setOnClickListener(this)
     }
 
-    private fun buildMediaSource(uri: Uri): MediaSource {
+    private fun buildMediaSource(url: String): MediaSource {
 
-        val lastPath = uri.lastPathSegment
+        //TODO ADD DI for OkHttpClient
+
+        val lastPath = Uri.parse(url).lastPathSegment
+        Timber.e(Uri.parse(url).toString())
+        val interceptor = HttpLoggingInterceptor()
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC)
+        val okHttpClient = OkHttpClient.Builder().addInterceptor { chain ->
+            val newRequest = chain.request().newBuilder()
+                .addHeader("Referer", sharedPreferences.getReferrer())
+                .addHeader(
+                    "user-agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
+                )
+                .build()
+            chain.proceed(newRequest)
+        }.addInterceptor(interceptor)
         val defaultDataSourceFactory = {
-            val dataSource: DataSource.Factory = DefaultHttpDataSource.Factory()
-                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36")
-                .setDefaultRequestProperties(hashMapOf("Referer" to sharedPreferences.getReferrer()))
+            val dataSource: DataSource.Factory =
+                OkHttpDataSource.Factory(okHttpClient.build())
             dataSource.createDataSource()
+
         }
         return if (lastPath!!.contains("m3u8")) {
             HlsMediaSource.Factory(defaultDataSourceFactory)
                 .setAllowChunklessPreparation(true)
-                .createMediaSource(MediaItem.fromUri(uri))
+                .createMediaSource(MediaItem.fromUri(url))
         } else {
-            ProgressiveMediaSource.Factory(defaultDataSourceFactory)
-                .createMediaSource(MediaItem.fromUri(uri))
+            return ProgressiveMediaSource.Factory(defaultDataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(url))
         }
 
     }
+//
+//    private fun getDataSourceFactory(): DataSource.Factory {
+//        val httpDataSourceFactory: HttpDataSource.Factory =
+//            DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
+//
+//        val dataSourceFactory = DataSource.Factory {
+//            val dataSource: HttpDataSource = httpDataSourceFactory.createDataSource()
+//            // Set a custom authentication request header.
+//            dataSource.setRequestProperty(
+//                "user-agent",
+//                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
+//            )
+//            dataSource
+//        }
+//        return dataSourceFactory
+//    }
 
     fun updateContent(content: Content) {
-        Timber.e("Content Updated uRL: ${content.url}")
+        Timber.e("Content Updated uRL: ${content.urls}")
         this.content = content
         animeName.text = content.animeName
         val text = content.episodeName
@@ -199,8 +230,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             previousEpisode.visibility = View.GONE
         }
 
-        if (!content.url.isNullOrEmpty()) {
-            updateVideoUrl(URLDecoder.decode(content.url, StandardCharsets.UTF_8.name()))
+        if (!content.urls.isNullOrEmpty()) {
+            updateVideoUrl(content.urls[2].url)
         } else {
             showErrorLayout(
                 show = true,
@@ -220,7 +251,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         player.playWhenReady = playWhenReady
         showLoading(true)
         showErrorLayout(false, 0, 0)
-        val mediaSource = buildMediaSource(Uri.parse(videoUrl))
+        val mediaSource = buildMediaSource(videoUrl)
         player.setMediaSource(mediaSource)
         player.prepare()
         seekTo?.let {
@@ -277,7 +308,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
     private fun refreshData() {
-        if (::content.isInitialized && !content.url.isNullOrEmpty()) {
+        if (::content.isInitialized && !content.urls.isNullOrEmpty()) {
             loadVideo(player.currentPosition, true)
         } else {
             (activity as VideoPlayerActivity).refreshM3u8Url()
@@ -464,7 +495,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             // querying the cause.
             if (httpError is InvalidResponseCodeException) {
                 val responseCode = httpError.responseCode
-                content.url = ""
+                content.urls = ArrayList()
                 showErrorLayout(
                     show = true,
                     errorMsgId = R.string.server_error,

@@ -7,17 +7,12 @@ import java.time.Duration
 
 
 open class Content(
-    var url: String?="",
-    @Ignore
+    var urls: ArrayList<Source> = ArrayList(),
     var animeName: String = "",
-    var episodeName: String?="",
-    @PrimaryKey
-    var episodeUrl: String?="",
-    var nextEpisodeUrl: String?= null,
-    var previousEpisodeUrl: String?=null,
-    @Ignore
+    var episodeName: String? = "",
+    var episodeUrl: String? = "",
+    var nextEpisodeUrl: String? = null,
+    var previousEpisodeUrl: String? = null,
     var watchedDuration: Long = 0,
-    @Ignore
     var duration: Long = 0,
-    var insertionTime: Long = 0
-): RealmObject()
+)

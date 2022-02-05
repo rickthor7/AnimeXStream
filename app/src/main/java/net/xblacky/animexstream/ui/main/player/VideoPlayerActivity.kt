@@ -35,12 +35,18 @@ import android.view.WindowInsets
 import androidx.activity.viewModels
 import androidx.transition.Explode
 import androidx.transition.Slide
+import com.google.android.gms.common.util.SharedPreferencesUtils
+import net.xblacky.animexstream.utils.preference.Preference
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
     private val viewModel: VideoPlayerViewModel by viewModels()
+
+    @Inject
+    lateinit var preference: Preference
     private var episodeNumber: String? = ""
     private var animeName: String? = ""
     private lateinit var content: Content
@@ -91,7 +97,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                 animeName = animeName ?: "",
                 episodeUrl = url,
                 episodeName = "\"$episodeNumber\"",
-                url = ""
+                urls = ArrayList()
             )
         )
         viewModel.fetchEpisodeData()
@@ -155,7 +161,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                     this.enterPictureInPictureMode()
                 }
             } catch (ex: Exception) {
-                Timber.e(ex.message)
+                Timber.e(ex)
             }
 
         } else {
@@ -198,7 +204,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.content.observe(this, Observer {
             this.content = it
             it?.let {
-                if (!it.url.isNullOrEmpty()) {
+                if (!it.urls.isNullOrEmpty()) {
                     (playerFragment as VideoPlayerFragment).updateContent(it)
                 }
             }
@@ -213,6 +219,11 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                 it.errorCode
             )
         })
+
+        viewModel.cdnServer.observe(this) {
+            Timber.e("Referrer : $it")
+            preference.setReferrer(it)
+        }
     }
 
     override fun onBackPressed() {
@@ -246,7 +257,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
             Content(
                 episodeUrl = content.nextEpisodeUrl,
                 episodeName = "\"EP ${incrimentEpisodeNumber(content.episodeName!!)}\"",
-                url = "",
+                urls = ArrayList(),
                 animeName = content.animeName
             )
         )
@@ -260,7 +271,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
             Content(
                 episodeUrl = content.previousEpisodeUrl,
                 episodeName = "\"EP ${decrimentEpisodeNumber(content.episodeName!!)}\"",
-                url = "",
+                urls = ArrayList(),
                 animeName = content.animeName
             )
         )
@@ -298,8 +309,9 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         }
     }
 
+
     fun refreshM3u8Url() {
-        viewModel.fetchEpisodeData()
+        viewModel.fetchEpisodeData(forceRefresh = true)
     }
 
 }

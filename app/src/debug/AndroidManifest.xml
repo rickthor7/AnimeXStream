@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="net.xblacky.animexstream">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -11,10 +12,9 @@
     <application>
         <activity
             android:name=".HiltTestActivity"
+            android:exported="true"
             android:theme="@style/AppTheme"
-            android:exported="false" />
-
-
+            tools:node="merge" />
     </application>
 
 </manifest>

@@ -1,6 +1,5 @@
 package net.xblacky.animexstream.ui.main.home
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -8,33 +7,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.annotation.ExperimentalCoilApi
-import com.google.android.material.transition.MaterialElevationScale
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_home.view.*
 import net.xblacky.animexstream.BuildConfig
 import net.xblacky.animexstream.R
-import net.xblacky.animexstream.ui.main.home.components.HomeScreen
 import net.xblacky.animexstream.ui.main.home.epoxy.HomeController
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import timber.log.Timber
 
-@ExperimentalCoilApi
 @AndroidEntryPoint
 class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapterCallbacks {
 
@@ -71,16 +59,16 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
     }
 
     private fun viewModelObserver() {
-        viewModel.animeList.observe(viewLifecycleOwner, {
+        viewModel.animeList.observe(viewLifecycleOwner) {
             homeController.setData(it)
-        })
+        }
 
-        viewModel.updateModel.observe(viewLifecycleOwner, {
+        viewModel.updateModel.observe(viewLifecycleOwner) {
             Timber.e(it.whatsNew)
             if (it.versionCode > BuildConfig.VERSION_CODE) {
                 showDialog(it.whatsNew)
             }
-        })
+        }
     }
 
     private fun setupTransitions(view: View) {
