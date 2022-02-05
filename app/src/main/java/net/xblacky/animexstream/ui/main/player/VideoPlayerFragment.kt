@@ -37,6 +37,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.xblacky.animexstream.R
+import net.xblacky.animexstream.ui.main.player.di.PlayerDI
 import net.xblacky.animexstream.ui.main.player.utils.CustomOnScaleGestureListener
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.animation.CustomAnimation
@@ -50,6 +51,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import timber.log.Timber
 import java.lang.Exception
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -60,6 +62,10 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     companion object {
         private val TAG = VideoPlayerFragment::class.java.simpleName
     }
+
+    @Inject
+    @PlayerDI.ExoOkHttpClient
+    lateinit var okHttpClient: OkHttpClient
 
     private lateinit var videoUrl: String
     private lateinit var rootView: View
@@ -164,25 +170,10 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     private fun buildMediaSource(url: String): MediaSource {
 
-        //TODO ADD DI for OkHttpClient
-
         val lastPath = Uri.parse(url).lastPathSegment
-        Timber.e(Uri.parse(url).toString())
-        val interceptor = HttpLoggingInterceptor()
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC)
-        val okHttpClient = OkHttpClient.Builder().addInterceptor { chain ->
-            val newRequest = chain.request().newBuilder()
-                .addHeader("Referer", sharedPreferences.getReferrer())
-                .addHeader(
-                    "user-agent",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
-                )
-                .build()
-            chain.proceed(newRequest)
-        }.addInterceptor(interceptor)
         val defaultDataSourceFactory = {
             val dataSource: DataSource.Factory =
-                OkHttpDataSource.Factory(okHttpClient.build())
+                OkHttpDataSource.Factory(okHttpClient)
             dataSource.createDataSource()
 
         }
@@ -196,22 +187,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         }
 
     }
-//
-//    private fun getDataSourceFactory(): DataSource.Factory {
-//        val httpDataSourceFactory: HttpDataSource.Factory =
-//            DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
-//
-//        val dataSourceFactory = DataSource.Factory {
-//            val dataSource: HttpDataSource = httpDataSourceFactory.createDataSource()
-//            // Set a custom authentication request header.
-//            dataSource.setRequestProperty(
-//                "user-agent",
-//                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
-//            )
-//            dataSource
-//        }
-//        return dataSourceFactory
-//    }
 
     fun updateContent(content: Content) {
         Timber.e("Content Updated uRL: ${content.urls}")
@@ -442,7 +417,10 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     private fun selectQuality(index: Int) {
         selectedQuality = index
         updateQualityText(index = index)
-        updateVideoUrl(content.urls[index].url, player.currentPosition)
+        if (content.urls[index].url != videoUrl) {
+            updateVideoUrl(content.urls[index].url, player.currentPosition)
+        }
+
     }
 
     private fun updateQualityText(index: Int = 0) {
