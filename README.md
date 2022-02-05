@@ -26,8 +26,8 @@
 [<img src="meta/android/screenshots/screenshot_08.jpg" width=160>](meta/android/screenshots/screenshot_08.jpg)
 [<img src="meta/android/screenshots/screenshot_09.jpg" width=160>](meta/android/screenshots/screenshot_09.jpg)
 [<img src="meta/android/screenshots/screenshot_10.jpg" width=160>](meta/android/screenshots/screenshot_10.jpg)
-[<img src="meta/android/screenshots/screenshot_11.png" width=405>](meta/android/screenshots/screenshot_11.jpg)
-[<img src="meta/android/screenshots/screenshot_12.png" width=405>](meta/android/screenshots/screenshot_12.jpg)
+[<img src="meta/android/screenshots/screenshot_11.png" width=405>](meta/android/screenshots/screenshot_11.png)
+[<img src="meta/android/screenshots/screenshot_12.png" width=405>](meta/android/screenshots/screenshot_12.png)
 
 
 ## Description
