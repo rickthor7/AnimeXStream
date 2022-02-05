@@ -1,4 +1,4 @@
-package net.xblacky.animexstream.ui.main.animeinfo
+package net.xblacky.animexstream.ui.main.animeinfo.source
 
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
