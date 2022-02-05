@@ -36,7 +36,7 @@ class HomeViewModelTest {
 
 
         //Given
-        val repository = HomeFakeDefaultRepository(HomeFakeDefaultRepository.ResponseType.SUCCESS)
+        val repository = HomeFakeDefaultRepository()
         val viewmodel = HomeViewModel(repository, dispatcher = dispatcher)
 
         //When

@@ -14,7 +14,7 @@ data class Source(
     @SerializedName("file")
     val url: String,
     @SerializedName("label")
-    val label: String,
+    var label: String,
     @SerializedName("type")
     val type: String
 

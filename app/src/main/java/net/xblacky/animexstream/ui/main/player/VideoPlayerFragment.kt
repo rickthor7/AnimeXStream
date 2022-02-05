@@ -49,6 +49,7 @@ import net.xblacky.animexstream.utils.touchevents.TouchUtils
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import timber.log.Timber
+import java.lang.Exception
 
 
 @AndroidEntryPoint
@@ -80,10 +81,11 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     private lateinit var sharedPreferences: Preference
 
-    private val speeds = arrayOf(0.25f, 0.5f, 1f, 1.25f, 1.5f, 2f)
-    private val showableSpeed = arrayOf("0.25x", "0.50x", "1x", "1.25x", "1.50x", "2x")
-    private var checkedItem = 2
-    private var selectedSpeed = 2
+    private val speeds = arrayOf(0.5f, 1f, 1.25f, 1.5f, 2f)
+    private val showableSpeed = arrayOf("0.50x", "1x", "1.25x", "1.50x", "2x")
+    private var checkedItem = 1
+    private var selectedSpeed = 1
+    private var selectedQuality = 0
     private var job: Job? = null
 
     override fun onCreateView(
@@ -231,7 +233,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         }
 
         if (!content.urls.isNullOrEmpty()) {
-            updateVideoUrl(content.urls[2].url)
+            updateVideoUrl(content.urls[0].url)
+            updateQualityText()
         } else {
             showErrorLayout(
                 show = true,
@@ -242,9 +245,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     }
 
-    private fun updateVideoUrl(videoUrl: String) {
+    private fun updateVideoUrl(videoUrl: String, seekTo: Long? = content.watchedDuration) {
         this.videoUrl = videoUrl
-        loadVideo(seekTo = content.watchedDuration)
+        loadVideo(seekTo = seekTo)
     }
 
     private fun loadVideo(seekTo: Long? = 0, playWhenReady: Boolean = true) {
@@ -265,7 +268,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.exo_track_selection_view -> {
-                showDialog()
+                showDialogForQualitySelection()
             }
             R.id.exo_speed_selection_view -> {
                 showDialogForSpeedSelection()
@@ -415,19 +418,39 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
 
-    private fun showDialog() {
-        mappedTrackInfo = trackSelector.currentMappedTrackInfo
-
-        try {
-            TrackSelectionDialogBuilder(
-                requireContext(),
-                getString(R.string.video_quality),
-                trackSelector,
-                0,
-            ).build().show()
-
-        } catch (ignored: java.lang.NullPointerException) {
+    private fun showDialogForQualitySelection() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.apply {
+            setTitle("Quality")
+            setSingleChoiceItems(
+                getQualityArray().toTypedArray(),
+                selectedQuality
+            ) { dialog, selectedIndex ->
+                selectQuality(selectedIndex)
+                dialog.dismiss()
+            }
+            builder.create().show()
         }
+    }
+
+    private fun selectQuality(index: Int) {
+        selectedQuality = index
+        updateQualityText(index = index)
+        updateVideoUrl(content.urls[index].url, player.currentPosition)
+    }
+
+    private fun updateQualityText(index: Int = 0) {
+        selectedQuality = index
+        val quality = "Quality(${content.urls[index].label})"
+        rootView.exoQuality.text = quality
+    }
+
+    private fun getQualityArray(): ArrayList<String> {
+        val list = ArrayList<String>()
+        content.urls.forEach {
+            list.add(it.label)
+        }
+        return list
     }
 
     // set playback speed for exoplayer
@@ -442,47 +465,21 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         checkedItem = speed
         val speedText = "Speed(${showableSpeed[speed]})"
         exoSpeedText.text = speedText
+        setPlaybackSpeed(speeds[selectedSpeed])
     }
 
     // show dialog to select the speed.
     private fun showDialogForSpeedSelection() {
         val builder = AlertDialog.Builder(requireContext())
         builder.apply {
-            setTitle("Set your playback speed")
-            setSingleChoiceItems(showableSpeed, checkedItem) { _, which ->
-                when (which) {
-                    0 -> setSpeed(0)
-                    1 -> setSpeed(1)
-                    2 -> setSpeed(2)
-                    3 -> setSpeed(3)
-                    4 -> setSpeed(4)
-                    5 -> setSpeed(5)
-                }
-            }
-            setPositiveButton("OK") { dialog, _ ->
-                setPlaybackSpeed(speeds[selectedSpeed])
-                dialog.dismiss()
-            }
-            setNegativeButton("Cancel") { dialog, _ ->
+            setTitle("Playback speed")
+            setSingleChoiceItems(showableSpeed, checkedItem) { dialog, which ->
+                setSpeed(which)
                 dialog.dismiss()
             }
         }
         val dialog = builder.create()
         dialog.show()
-    }
-
-    override fun onTracksChanged(
-        trackGroups: TrackGroupArray,
-        trackSelections: TrackSelectionArray
-    ) {
-        try {
-            Timber.e(trackSelections.toString())
-            val videoQuality = trackSelections.get(0)?.getFormat(0)?.height.toString() + "p"
-            val quality = "Quality($videoQuality)"
-            exoQuality.text = quality
-        } catch (ignore: NullPointerException) {
-        }
-
     }
 
     override fun onPlayerError(error: PlaybackException) {

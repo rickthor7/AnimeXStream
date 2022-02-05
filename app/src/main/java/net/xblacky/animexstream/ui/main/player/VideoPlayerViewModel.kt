@@ -43,6 +43,16 @@ class VideoPlayerViewModel @Inject constructor(
 
     private fun handleM3U8Url(data: M3U8FromAjaxModel) {
         val content = _content.value
+        data.sourceMp4.forEach {
+            try {
+                if (!it.label.contains("Auto")) {
+                    it.label = it.label.lowercase().replace(" ", "")
+                }
+            } catch (ignored: Exception) {
+            }
+
+        }
+        data.sourceMp4.reverse()
         content?.urls = data.sourceMp4
         _content.value = content
         saveContent(content!!)

@@ -6,25 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.view.Window
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
-import com.google.android.material.transition.platform.MaterialContainerTransform
-import com.google.android.material.transition.platform.MaterialContainerTransformSharedElementCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_video_player.*
 import kotlinx.android.synthetic.main.fragment_video_player.*
-import net.xblacky.animexstream.MainActivity
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.utils.model.Content
 import timber.log.Timber
@@ -33,9 +22,7 @@ import android.view.WindowInsetsController
 
 import android.view.WindowInsets
 import androidx.activity.viewModels
-import androidx.transition.Explode
-import androidx.transition.Slide
-import com.google.android.gms.common.util.SharedPreferencesUtils
+import androidx.lifecycle.Observer
 import net.xblacky.animexstream.utils.preference.Preference
 import javax.inject.Inject
 
@@ -201,6 +188,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     }
 
     private fun setObserver() {
+
         viewModel.content.observe(this, Observer {
             this.content = it
             it?.let {
