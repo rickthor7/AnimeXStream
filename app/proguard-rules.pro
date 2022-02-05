@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keepclassmembers class * {
+   @com.google.gson.annotations.SerializedName <fields>;
+}
+-keepnames public class * extends io.realm.RealmObject
