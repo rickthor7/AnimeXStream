@@ -15,6 +15,7 @@
 <b><br>Do not PUT ANIME X STREAM OR ANY FORK OF IT INTO GOOGLE PLAYSTORE or Any other Store. It may VIOLATE THEIR TERMS AND CONDITIONS or you may encounter legal obligations.</b>
 
 <h3 align="center">**Star :star:  this repo to show your support and it really does matter!** :clap:</h4>
+<p align="center"><a href="https://www.buymeacoffee.com/xblacky"><img src="/meta/android/beer.png"></a></p> 
 
 ## Screenshots
 
