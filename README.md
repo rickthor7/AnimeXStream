@@ -67,7 +67,7 @@ Anime X Stream parses website data and filter required info, thus It removes the
 * Kotlin Coroutines
 
 ## Contribution
-Your ideas, translations, design changes, code cleaning, or real heavy code changes or any help is always welcome. The more is contribution the better it gets
+Your ideas, translations, design changes, code cleaning, real heavy code changes, or any help are always welcome. The more is the contribution, the better it gets.
 
 [Pull requests](https://github.com/mukul500/AnimeXStream/pulls) will be reviewed
 
