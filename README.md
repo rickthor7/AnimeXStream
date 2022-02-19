@@ -15,6 +15,7 @@
 <b><br>Do not PUT ANIME X STREAM OR ANY FORK OF IT INTO GOOGLE PLAYSTORE or Any other Store. It may VIOLATE THEIR TERMS AND CONDITIONS or you may encounter legal obligations.</b>
 
 <h3 align="center">**Star :star:  this repo to show your support and it really does matter!** :clap:</h4>
+<p align="center"><a href="https://www.buymeacoffee.com/xblacky"><img src="/meta/android/beer.png"></a></p> 
 
 ## Screenshots
 
@@ -66,7 +67,7 @@ Anime X Stream parses website data and filter required info, thus It removes the
 * Kotlin Coroutines
 
 ## Contribution
-Your ideas, translations, design changes, code cleaning, or real heavy code changes or any help is always welcome. The more is contribution the better it gets
+Your ideas, translations, design changes, code cleaning, real heavy code changes, or any help are always welcome. The more is the contribution, the better it gets.
 
 [Pull requests](https://github.com/mukul500/AnimeXStream/pulls) will be reviewed
 
