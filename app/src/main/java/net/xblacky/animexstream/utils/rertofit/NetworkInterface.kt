@@ -62,23 +62,23 @@ class NetworkInterface {
 
     interface FetchAnimeInfo {
         @GET
-        fun get(
+        suspend fun get(
             @HeaderMap header: Map<String, String>,
             @Url url: String
-        ): Observable<ResponseBody>
+        ): ResponseBody
     }
 
     interface FetchEpisodeList {
 
         @GET(C.EPISODE_LOAD_URL)
-        fun get(
+        suspend fun get(
             @HeaderMap header: Map<String, String>,
             @Query("ep_start") startEpisode: Int = 0,
-            @Query("ep_end") endEpisode: String,
+            @Query("ep_end") endEpisode: Int=9999,
             @Query("id") id: String,
             @Query("default_ep") defaultEp: Int = 0,
             @Query("alias") alias: String
-        ): Observable<ResponseBody>
+        ): ResponseBody
     }
 
     interface FetchSearchData {

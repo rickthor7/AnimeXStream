@@ -1,5 +1,6 @@
 package net.xblacky.animexstream.utils.parser
 
+import io.realm.Realm
 import io.realm.RealmList
 import net.xblacky.animexstream.ui.main.home.source.InvalidAnimeTypeException
 import net.xblacky.animexstream.utils.constants.C
@@ -171,7 +172,7 @@ class HtmlParser {
             lateinit var releaseTime: String
             lateinit var status: String
             lateinit var plotSummary: String
-            val genre: ArrayList<GenreModel> = ArrayList()
+            val genre: RealmList<GenreModel> = RealmList()
             lists?.forEachIndexed { index, element ->
                 when (index) {
                     0 -> type = element.text()
@@ -196,7 +197,6 @@ class HtmlParser {
                 genre = genre,
                 plotSummary = formatInfoValues(plotSummary).trim(),
                 alias = alias,
-                endEpisode = endEpisode
             )
 
         }
