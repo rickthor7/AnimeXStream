@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
@@ -19,6 +20,7 @@ import kotlinx.android.synthetic.main.fragment_home.view.*
 import net.xblacky.animexstream.BuildConfig
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.ui.main.home.epoxy.HomeController
+import net.xblacky.animexstream.utils.EventObserver
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import timber.log.Timber
@@ -31,7 +33,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
     private lateinit var homeController: HomeController
     private var doubleClickLastTime = 0L
 
-    private val viewModel: HomeViewModel by viewModels()
+    private val viewModel: HomeViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -54,6 +56,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
     private fun setAdapter() {
         homeController = HomeController(this)
         homeController.isDebugLoggingEnabled = true
+        homeController.setFilterDuplicates(true)
         val homeRecyclerView = rootView.recyclerView
         homeRecyclerView.layoutManager = LinearLayoutManager(context)
         homeRecyclerView.adapter = homeController.adapter
@@ -63,6 +66,9 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
         viewModel.animeList.observe(viewLifecycleOwner) {
             homeController.setData(it)
         }
+        viewModel.scrollToTopEvent.observe(viewLifecycleOwner, EventObserver {
+            rootView.recyclerView.smoothScrollToPosition(0)
+        })
 
         viewModel.updateModel.observe(viewLifecycleOwner) {
             Timber.e(it.whatsNew)
@@ -140,7 +146,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
             )
             findNavController().navigate(
                 HomeFragmentDirections.actionHomeFragmentToAnimeInfoFragment(
-                    categoryUrl = model.categoryUrl,
+                    categoryUrl = model.categoryUrl!!,
                     animeImageUrl = model.imageUrl,
                     animeName = model.title
                 ),

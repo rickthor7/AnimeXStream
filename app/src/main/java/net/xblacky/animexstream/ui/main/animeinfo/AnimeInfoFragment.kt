@@ -8,19 +8,23 @@ import android.view.ViewGroup
 import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.transition.TransitionInflater
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialContainerTransform
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_animeinfo.*
 import kotlinx.android.synthetic.main.fragment_animeinfo.view.*
 import kotlinx.android.synthetic.main.fragment_animeinfo.view.animeInfoRoot
 import kotlinx.android.synthetic.main.loading.view.*
 import net.xblacky.animexstream.R
+import net.xblacky.animexstream.ui.main.animeinfo.di.AnimeInfoFactory
 import net.xblacky.animexstream.ui.main.animeinfo.epoxy.AnimeInfoController
 import net.xblacky.animexstream.ui.main.home.HomeFragmentDirections
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
@@ -28,13 +32,26 @@ import net.xblacky.animexstream.utils.Tags.GenreTags
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.model.AnimeInfoModel
 import net.xblacky.animexstream.utils.model.EpisodeModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
 
     private lateinit var rootView: View
-    private lateinit var viewModelFactory: AnimeInfoViewModelFactory
-    private lateinit var viewModel: AnimeInfoViewModel
-    private lateinit var episodeController: AnimeInfoController
+    private val episodeController: AnimeInfoController by lazy {
+        AnimeInfoController(this)
+    }
+
+    @Inject
+    lateinit var animeInfoFactory: AnimeInfoFactory
+
+    private val args: AnimeInfoFragmentArgs by navArgs()
+
+    private val viewModel: AnimeInfoViewModel by viewModels {
+        AnimeInfoViewModel.provideFactory(
+            animeInfoFactory, args.categoryUrl
+        )
+    }
 
 
     override fun onCreateView(
@@ -50,9 +67,6 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setPreviews()
-        viewModelFactory =
-            AnimeInfoViewModelFactory(AnimeInfoFragmentArgs.fromBundle(requireArguments()).categoryUrl!!)
-        viewModel = ViewModelProvider(this, viewModelFactory).get(AnimeInfoViewModel::class.java)
         setupRecyclerView()
         setObserver()
         transitionListener()
@@ -71,31 +85,31 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
     }
 
     private fun setObserver() {
-        viewModel.animeInfoModel.observe(viewLifecycleOwner, {
+        viewModel.animeInfoModel.observe(viewLifecycleOwner) {
             it?.let {
                 updateViews(it)
             }
-        })
+        }
 
-        viewModel.episodeList.observe(viewLifecycleOwner, {
+        viewModel.episodeList.observe(viewLifecycleOwner) {
             it?.let {
                 rootView.animeInfoRoot.visibility = View.VISIBLE
                 episodeController.setData(it)
             }
-        })
+        }
 
-        viewModel.isLoading.observe(viewLifecycleOwner, {
+        viewModel.isLoading.observe(viewLifecycleOwner) {
 
             if (it.isLoading) {
                 rootView.loading.visibility = View.VISIBLE
             } else {
                 rootView.loading.visibility = View.GONE
             }
-        })
+        }
 
 
 
-        viewModel.isFavourite.observe(viewLifecycleOwner, {
+        viewModel.isFavourite.observe(viewLifecycleOwner) {
             if (it) {
                 favourite.setImageDrawable(
                     ResourcesCompat.getDrawable(
@@ -113,7 +127,7 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
                     )
                 )
             }
-        })
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -156,7 +170,6 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
     }
 
     private fun setupRecyclerView() {
-        episodeController = AnimeInfoController(this)
         episodeController.spanCount = Utils.calculateNoOfColumns(requireContext(), 150f)
         rootView.animeInfoRecyclerView.adapter = episodeController.adapter
         val itemOffsetDecoration = ItemOffsetDecoration(context, R.dimen.episode_offset_left)

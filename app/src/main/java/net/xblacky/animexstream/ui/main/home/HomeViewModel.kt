@@ -13,6 +13,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import net.xblacky.animexstream.ui.main.home.di.HomeRepositoryModule
 import net.xblacky.animexstream.ui.main.home.source.HomeRepository
+import net.xblacky.animexstream.utils.Event
 import net.xblacky.animexstream.utils.Result
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.constants.C
@@ -33,6 +34,8 @@ class HomeViewModel @Inject constructor(
         MutableLiveData(makeEmptyArrayList())
     var animeList: LiveData<ArrayList<HomeScreenModel>> = _animeList
 
+    private val _scrollToTopEvent: MutableLiveData<Event<Boolean>> = MutableLiveData(Event(false))
+    val scrollToTopEvent: LiveData<Event<Boolean>> = _scrollToTopEvent
 
     private var _updateModel: MutableLiveData<UpdateModel> = MutableLiveData()
     var updateModel: LiveData<UpdateModel> = _updateModel
@@ -43,17 +46,18 @@ class HomeViewModel @Inject constructor(
     }
 
     fun fetchHomeList() {
-        viewModelScope.async {
-            fetchPopular()
-            fetchNewSeason()
-            fetchMovies()
-            fetchRecentDub()
-            fetchRecentSub()
+        viewModelScope.launch {
+            async { fetchRecentSub() }.await()
+            async { fetchRecentDub() }
+            async { fetchPopular() }
+            async { fetchNewSeason() }
+            async { fetchMovies() }
         }
+
     }
 
 
-     fun queryDB() {
+    fun queryDB() {
         database = Firebase.database.reference
         val query: Query = database.child("appdata")
         query.addListenerForSingleValueEvent(object : ValueEventListener {

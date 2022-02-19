@@ -1,25 +1,22 @@
 package net.xblacky.animexstream.ui.main.animeinfo
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.observers.DisposableObserver
+import androidx.lifecycle.*
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import net.xblacky.animexstream.ui.main.animeinfo.di.AnimeInfoFactory
 import net.xblacky.animexstream.ui.main.animeinfo.source.AnimeInfoRepository
 import net.xblacky.animexstream.utils.CommonViewModel
-import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.AnimeInfoModel
 import net.xblacky.animexstream.utils.model.EpisodeModel
 import net.xblacky.animexstream.utils.model.FavouriteModel
-import net.xblacky.animexstream.utils.parser.HtmlParser
-import okhttp3.Dispatcher
-import okhttp3.ResponseBody
 import timber.log.Timber
 import java.lang.Exception
-import javax.inject.Inject
 
-class AnimeInfoViewModel(private val categoryUrl: String) : CommonViewModel() {
+class AnimeInfoViewModel @AssistedInject constructor(
+    @Assisted val categoryUrl: String,
+    private val animeInfoRepository: AnimeInfoRepository
+) : CommonViewModel() {
 
     private var _animeInfoModel: MutableLiveData<AnimeInfoModel> = MutableLiveData()
     var animeInfoModel: LiveData<AnimeInfoModel> = _animeInfoModel
@@ -27,7 +24,6 @@ class AnimeInfoViewModel(private val categoryUrl: String) : CommonViewModel() {
     private var _episodeList: MutableLiveData<ArrayList<EpisodeModel>> = MutableLiveData()
     var episodeList: LiveData<ArrayList<EpisodeModel>> = _episodeList
 
-    private val animeInfoRepository = AnimeInfoRepository()
 
     private var _isFavourite: MutableLiveData<Boolean> = MutableLiveData(false)
     var isFavourite: LiveData<Boolean> = _isFavourite
@@ -36,7 +32,7 @@ class AnimeInfoViewModel(private val categoryUrl: String) : CommonViewModel() {
         fetchAnimeInfo()
     }
 
-    fun fetchAnimeInfo() {
+    private fun fetchAnimeInfo() {
         viewModelScope.launch {
             try {
                 updateLoading(loading = true)
@@ -78,5 +74,17 @@ class AnimeInfoViewModel(private val categoryUrl: String) : CommonViewModel() {
             )
         )
         _isFavourite.value = true
+    }
+
+    companion object {
+        fun provideFactory(
+            assistedFactory: AnimeInfoFactory,
+            categoryUrl: String
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return assistedFactory.create(categoryUrl = categoryUrl) as T
+            }
+        }
     }
 }

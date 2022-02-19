@@ -4,8 +4,9 @@ import io.realm.Realm
 import net.xblacky.animexstream.utils.model.AnimeInfoModel
 import net.xblacky.animexstream.utils.model.FavouriteModel
 import net.xblacky.animexstream.utils.realm.InitalizeRealm
+import javax.inject.Inject
 
-class AnimeInfoLocalRepo {
+class AnimeInfoLocalRepo @Inject constructor() {
     private val realm = Realm.getInstance(InitalizeRealm.getConfig())
     fun isFavourite(id: String): Boolean {
         val result = realm.where(FavouriteModel::class.java).equalTo("ID", id).findFirst()
@@ -27,13 +28,13 @@ class AnimeInfoLocalRepo {
 
     }
 
-     fun saveAnimeInfo(model: AnimeInfoModel) {
+    fun saveAnimeInfo(model: AnimeInfoModel) {
         realm.executeTransactionAsync {
             it.insertOrUpdate(model)
         }
     }
 
-     fun fetchAnimeInfo(categoryUrl: String): AnimeInfoModel? {
+    fun fetchAnimeInfo(categoryUrl: String): AnimeInfoModel? {
         return realm.where(AnimeInfoModel::class.java).equalTo("categoryUrl", categoryUrl)
             .findFirst()
 

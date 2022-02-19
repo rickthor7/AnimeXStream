@@ -70,8 +70,8 @@ class SearchFragment : Fragment(), View.OnClickListener,
 
 
     private fun setEditTextListener() {
-        rootView.searchEditText.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH || event.action == KeyEvent.ACTION_DOWN) {
+        rootView.searchEditText.setOnEditorActionListener(OnEditorActionListener { v, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 hideKeyBoard()
                 rootView.searchEditText.clearFocus()
                 viewModel.fetchSearchList(v.text.toString().trim())
@@ -234,7 +234,7 @@ class SearchFragment : Fragment(), View.OnClickListener,
         )
         findNavController().navigate(
             SearchFragmentDirections.actionSearchFragmentToAnimeInfoFragment(
-                categoryUrl = model.categoryUrl,
+                categoryUrl = model.categoryUrl!!,
                 animeImageUrl = model.imageUrl,
                 animeName = model.title
             ),

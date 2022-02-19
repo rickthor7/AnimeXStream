@@ -38,8 +38,7 @@
             app:exitAnim="@android:anim/fade_out" />
         <argument
             android:name="categoryUrl"
-            app:argType="string"
-            app:nullable="true" />
+            app:argType="string" />
         <argument
             android:name="animeName"
             app:argType="string" />

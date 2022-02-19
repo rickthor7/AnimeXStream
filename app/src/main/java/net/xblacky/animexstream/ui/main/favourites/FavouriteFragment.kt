@@ -176,7 +176,7 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
         )
         findNavController().navigate(
             FavouriteFragmentDirections.actionFavouriteFragmentToAnimeInfoFragment(
-                categoryUrl = model.categoryUrl,
+                categoryUrl = model.categoryUrl!!,
                 animeName = model.animeName!!,
                 animeImageUrl = model.imageUrl!!
             ), extras

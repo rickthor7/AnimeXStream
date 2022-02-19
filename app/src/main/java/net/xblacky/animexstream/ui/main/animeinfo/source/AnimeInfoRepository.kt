@@ -11,12 +11,12 @@ import net.xblacky.animexstream.utils.realm.InitalizeRealm
 import net.xblacky.animexstream.utils.rertofit.NetworkInterface
 import net.xblacky.animexstream.utils.rertofit.RetrofitHelper
 import okhttp3.ResponseBody
+import javax.inject.Inject
 
-class AnimeInfoRepository() {
-
-    private val localRepo = AnimeInfoLocalRepo()
-    private val remoteRepo = AnimeInfoRemoteRepo()
-
+class AnimeInfoRepository @Inject constructor(
+    private val localRepo: AnimeInfoLocalRepo,
+    private val remoteRepo: AnimeInfoRemoteRepo
+) {
 
     fun isFavourite(id: String): Boolean {
         return localRepo.isFavourite(id)
