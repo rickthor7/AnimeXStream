@@ -3,7 +3,7 @@
 <h4 align="center">An Android app to watch anime on your phone without ads.</h4>
 <p align="center"><a href="https://github.com/mukul500/AnimeXStream/releases"><img src="/meta/android/download.png"></a></p> 
 <p align="center">
-<a href="https://github.com/mukul500/AnimeXStream" alt="GitHub release"><img src="https://img.shields.io/badge/version-0.4.0-blue.svg?style=for-the-badge" ></a>
+<a href="https://github.com/mukul500/AnimeXStream" alt="GitHub release"><img src="https://img.shields.io/badge/version-0.4.2-blue.svg?style=for-the-badge" ></a>
 <a href="/LICENSE" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge"></a>
 <a href="https://github.com/mukul500/AnimeXStream" alt="Build Status"><img src="https://img.shields.io/badge/build-passing-yellowgreen.svg?style=for-the-badge"></a>
 <a href="https://github.com/mukul500/AnimeXStream" alt="Total Downloads"><img alt="GitHub all releases" src="https://img.shields.io/github/downloads/mukul500/AnimeXStream/total?style=for-the-badge"></a>
