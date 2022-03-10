@@ -11,9 +11,14 @@ class C {
         const val NO_INTERNET_CONNECTION = 1001
 
         //Base URLS
-        var BASE_URL = "https://gogoanime.pe/"
+        var BASE_URL = "https://gogoanime.fi/"
         const val EPISODE_LOAD_URL = "https://ajax.gogocdn.net/ajax/load-list-episode"
         const val SEARCH_URL = "/search.html"
+
+
+        const val GogoSecretkey = "25716538522938396164662278833288"
+        const val GogoSecretIV = "1285672985238393"
+        val GogoPadding= byteArrayOf(0x8,0xe,0x3,0x8,0x9,0x3,0x4,0x9)
 
         //Model Type
         const val TYPE_RECENT_SUB = 1
@@ -53,7 +58,7 @@ class C {
 
         //Network Requests Header
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
-        const val ORIGIN = "https://gogoplay.io"
+        const val ORIGIN = "https://gogoanime.fi"
         const val  REFERER = "https://gogoplay.io"
 
         //Realm

@@ -6,6 +6,7 @@ import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.model.EpisodeInfo
 import net.xblacky.animexstream.utils.model.M3U8FromAjaxModel
 import net.xblacky.animexstream.utils.model.WatchedEpisode
+import net.xblacky.animexstream.utils.parser.HtmlParser
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -48,11 +49,11 @@ class EpisodeRepository @Inject constructor(
     }
 
     suspend fun fetchM3U8DataFromAjax(url: String): M3U8FromAjaxModel {
-        return remoteRepo.fetchM3U8Url(url)
-
+        val data = remoteRepo.fetchM3U8Url(url)
+        return HtmlParser.parseEncryptedData(data.string())
     }
 
-     fun getWatchDuration(id: Int): WatchedEpisode? {
+    fun getWatchDuration(id: Int): WatchedEpisode? {
         return localRepo.fetchWatchDuration(id)
     }
 

@@ -54,9 +54,8 @@ class NetworkInterface {
         @GET
         @Headers("X-Requested-With:XMLHttpRequest")
         suspend fun fetchM3U8Url(
-            @HeaderMap header: Map<String, String>,
             @Url url: String
-        ): M3U8FromAjaxModel
+        ): ResponseBody
 
     }
 

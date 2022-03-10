@@ -1,14 +1,13 @@
 package net.xblacky.animexstream.utils.parser
 
-import io.realm.Realm
+import com.google.gson.Gson
 import io.realm.RealmList
 import net.xblacky.animexstream.ui.main.home.source.InvalidAnimeTypeException
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.model.*
-import net.xblacky.animexstream.utils.parser.DeCipher.decode
 import net.xblacky.animexstream.utils.parser.DeCipher.decryptAES
 import net.xblacky.animexstream.utils.parser.DeCipher.encryptAes
-import org.apache.commons.lang3.RandomStringUtils
+import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import timber.log.Timber
@@ -204,7 +203,7 @@ class HtmlParser {
         fun parseMediaUrl(response: String): EpisodeInfo {
             var mediaUrl: String?
             val document = Jsoup.parse(response)
-            val info = document?.getElementsByClass("vidcdn")?.first()?.select("a")
+            val info = document?.getElementsByClass("anime")?.first()?.select("a")
             mediaUrl = info?.attr("data-video").toString()
             val nextEpisodeUrl =
                 document.getElementsByClass("anime_video_body_episodes_r")?.select("a")?.first()
@@ -221,6 +220,27 @@ class HtmlParser {
             )
         }
 
+        fun parseEncryptAjaxParameters(response: String): String {
+            val document = Jsoup.parse(response)
+            val value2 = document.select("script[data-name='crypto']").attr("data-value")
+            val decryptkey =
+                decryptAES(value2, C.GogoSecretkey, C.GogoSecretIV).replaceAfter("&", "")
+                    .removeSuffix("&")
+            val encrypted = encryptAes(decryptkey, C.GogoSecretkey, C.GogoSecretIV)
+            return "id=$encrypted"
+        }
+
+        fun parseEncryptedData(response: String): M3U8FromAjaxModel {
+            val data = JSONObject(response).getString("data")
+            val decryptedData = decryptAES(data, C.GogoSecretkey, C.GogoSecretIV).replace(
+                """o"<P{#meme":""",
+                """e":[{"file":"""
+            )
+            return Gson().fromJson(decryptedData, M3U8FromAjaxModel::class.java)
+        }
+
+
+/*
         fun parseEncryptAjaxParameters(response: String): String {
 
             val document = Jsoup.parse(response)
@@ -261,6 +281,9 @@ class HtmlParser {
             )
 
         }
+
+
+ */
 
 
         fun parseM3U8Url(response: String): String? {

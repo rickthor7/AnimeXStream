@@ -51,7 +51,7 @@ object RetrofitModule {
     @HttpBodyDebugger
     fun provideFullLogInterceptor(): HttpLoggingInterceptor {
         val interceptor = HttpLoggingInterceptor()
-        interceptor.level = HttpLoggingInterceptor.Level.BASIC
+        interceptor.level = HttpLoggingInterceptor.Level.BODY
         return interceptor
     }
 

@@ -34,9 +34,9 @@ class EpisodeRemoteRepository @Inject constructor(
         }
     }
 
-    suspend fun fetchM3U8Url(url: String): M3U8FromAjaxModel {
+    suspend fun fetchM3U8Url(url: String): ResponseBody {
         return withContext(dispatcher) {
-            service.fetchM3U8Url(Utils.getHeader(), url)
+            service.fetchM3U8Url(url)
         }
     }
 }

@@ -86,7 +86,7 @@ class VideoPlayerViewModel @Inject constructor(
                     val encryptedAjaxUrl = "${cdnServer.value}encrypt-ajax.php?$encryptedAjaxParams"
                     Timber.e(encryptedAjaxUrl)
                     val m3u8Data = episodeRepository.fetchM3U8DataFromAjax(encryptedAjaxUrl)
-                    handleM3U8Url(m3u8Data)
+                    handleM3U8Url(m3u8Data!!)
 
                 }
             } catch (exc: Exception) {
