@@ -84,6 +84,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     private val DUCK_MEDIA_VOLUME = 0.2f
     private lateinit var handler: Handler
     private var isVideoPlaying: Boolean = false
+    private var IS_MEDIA_M3U8 = false
 
     private lateinit var sharedPreferences: Preference
 
@@ -127,10 +128,10 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
     private fun initializePlayer() {
+        trackSelectionFactory = AdaptiveTrackSelection.Factory()
+        trackSelector = DefaultTrackSelector(requireContext(), trackSelectionFactory)
         rootView.exoPlayerFrameLayout.setAspectRatio(16f / 9f)
-        player = ExoPlayer.Builder(requireContext()).build()
-
-
+        player = ExoPlayer.Builder(requireContext()).setTrackSelector(trackSelector).build()
         val audioAttributes: AudioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.CONTENT_TYPE_MOVIE)
@@ -169,15 +170,15 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
     private fun buildMediaSource(url: String): MediaSource {
-
         val lastPath = Uri.parse(url).lastPathSegment
+        IS_MEDIA_M3U8 = lastPath!!.contains("m3u8")
         val defaultDataSourceFactory = {
             val dataSource: DataSource.Factory =
                 OkHttpDataSource.Factory(okHttpClient)
             dataSource.createDataSource()
 
         }
-        return if (lastPath!!.contains("m3u8")) {
+        return if (IS_MEDIA_M3U8) {
             HlsMediaSource.Factory(defaultDataSourceFactory)
                 .setAllowChunklessPreparation(true)
                 .createMediaSource(MediaItem.fromUri(url))
@@ -272,6 +273,40 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             R.id.previousEpisode -> {
                 playPreviousEpisode()
             }
+        }
+    }
+
+    private fun showM3U8TrackSelector() {
+        mappedTrackInfo = trackSelector?.currentMappedTrackInfo
+
+        try {
+            TrackSelectionDialogBuilder(
+                requireContext(),
+                getString(R.string.video_quality),
+                trackSelector,
+                0
+
+            ).build().show()
+        } catch (ignored: java.lang.NullPointerException) {
+        }
+
+    }
+
+
+    override fun onTracksChanged(
+        trackGroups: TrackGroupArray,
+        trackSelections: TrackSelectionArray
+    ) {
+        if (IS_MEDIA_M3U8) {
+            try {
+                val videoQuality =
+                    trackSelections.get(0)!!.getFormat(0).height.toString() + "p"
+                val quality = "Quality($videoQuality)"
+                Timber.e("Quality $quality")
+                rootView.exoQuality.text = quality
+            } catch (ignored: Exception) {
+            }
+
         }
     }
 
@@ -400,17 +435,21 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
 
     private fun showDialogForQualitySelection() {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.apply {
-            setTitle("Quality")
-            setSingleChoiceItems(
-                getQualityArray().toTypedArray(),
-                selectedQuality
-            ) { dialog, selectedIndex ->
-                selectQuality(selectedIndex)
-                dialog.dismiss()
+        if (IS_MEDIA_M3U8) {
+            showM3U8TrackSelector()
+        } else {
+            val builder = AlertDialog.Builder(requireContext())
+            builder.apply {
+                setTitle("Quality")
+                setSingleChoiceItems(
+                    getQualityArray().toTypedArray(),
+                    selectedQuality
+                ) { dialog, selectedIndex ->
+                    selectQuality(selectedIndex)
+                    dialog.dismiss()
+                }
+                builder.create().show()
             }
-            builder.create().show()
         }
     }
 
@@ -431,8 +470,10 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     private fun getQualityArray(): ArrayList<String> {
         val list = ArrayList<String>()
-        content.urls.forEach {
-            list.add(it.label)
+        if (::content.isInitialized) {
+            content.urls.forEach {
+                list.add(it.label)
+            }
         }
         return list
     }
