@@ -1,7 +1,7 @@
 <p align="center"><a href="https://github.com/mukul500/AnimeXStream"><img src="/meta/android/animexstream.png" width="150"></a></p> 
 <h2 align="center"><b>Anime X Stream</b></h2>
 <h4 align="center">An Android app to watch anime on your phone without ads.</h4>
-<p align="center"><a href="https://github.com/mukul500/AnimeXStream/releases"><img src="/meta/android/download.png"></a></p> 
+<p align="center"><a href="https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-arm64-v8a-release.apk"><img src="/meta/android/download.png"></a></p> 
 <p align="center">
 <a href="https://github.com/mukul500/AnimeXStream" alt="GitHub release"><img src="https://img.shields.io/badge/version-0.4.2-blue.svg?style=for-the-badge" ></a>
 <a href="/LICENSE" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-MIT-orange.svg?style=for-the-badge"></a>
@@ -9,6 +9,9 @@
 <a href="https://github.com/mukul500/AnimeXStream" alt="Total Downloads"><img alt="GitHub all releases" src="https://img.shields.io/github/downloads/mukul500/AnimeXStream/total?style=for-the-badge"></a>
 </p>
 
+<b>full link download:
+  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-arm64-v8a-release.apk
+  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-armeabi-v7a-release.apk
 <hr>
 <b>WARNING: THIS IS A BETA VERSION of application, THEREFORE YOU MAY ENCOUNTER BUGS. You can OPEN the ISSUE on GITHUB REPOSITORY.</b>
 
