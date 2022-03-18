@@ -9,9 +9,9 @@
 <a href="https://github.com/mukul500/AnimeXStream" alt="Total Downloads"><img alt="GitHub all releases" src="https://img.shields.io/github/downloads/mukul500/AnimeXStream/total?style=for-the-badge"></a>
 </p>
 
-<b>full link download:
-  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-arm64-v8a-release.apk
-  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-armeabi-v7a-release.apk
+<b>full link download:</b>
+  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-arm64-v8a-release.apk <br>
+  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-armeabi-v7a-release.apk <brp>
 <hr>
 <b>WARNING: THIS IS A BETA VERSION of application, THEREFORE YOU MAY ENCOUNTER BUGS. You can OPEN the ISSUE on GITHUB REPOSITORY.</b>
 
