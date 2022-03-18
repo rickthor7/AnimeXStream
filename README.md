@@ -11,7 +11,11 @@
 
 <b>full link download:</b>
   https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-arm64-v8a-release.apk <br>
-  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-armeabi-v7a-release.apk <brp>
+  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-armeabi-v7a-release.apk <br>
+  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-universal-release.apk <br>
+  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-x86-release.apk <br>
+  https://github.com/mukul500/AnimeXStream/releases/download/v0.4.3/AnimexStream-v0.4.3-x86_64-release.apk <br>
+
 <hr>
 <b>WARNING: THIS IS A BETA VERSION of application, THEREFORE YOU MAY ENCOUNTER BUGS. You can OPEN the ISSUE on GITHUB REPOSITORY.</b>
 
